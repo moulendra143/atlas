@@ -210,5 +210,8 @@ class AtlasOpenEnv(OpenEnvBase):
     def step(self, action: int):
         return self.core.step(action)
 
+    def state(self):
+        return self.core.state.copy()
+
     def render(self):
         return self.core.render()

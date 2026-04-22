@@ -37,6 +37,24 @@ ATLAS trains an LLM-based CEO agent to navigate hiring, product launches, financ
 - **Dynamic events** — server outages, market crashes, viral growth, employee resignations
 - **Dense reward** every step + large terminal reward for survival/growth
 
+## Agent Capabilities
+
+The CEO agent is expected to demonstrate the following capabilities in a partially observable, dynamic world:
+- **Multi-agent coordination** across Engineering, Sales, HR, Finance, and Customer Success actors
+- **Long-horizon planning** over a full 90-day quarter with delayed consequences
+- **Crisis response and recovery** under shocks (outages, resignations, market events)
+- **Resource-constrained optimization** balancing cash, burn, morale, trust, and growth
+- **Policy adaptation** across scenario presets (`startup`, `growth`, `crisis`)
+
+## Tasks
+
+Each episode requires the agent to repeatedly perform structured decision tasks:
+- Choose one CEO action from the 13-action discrete space at each step
+- Prioritize product, hiring, finance, and customer decisions based on current state
+- Recover from negative events while preventing cascading failures
+- Maximize cumulative reward and terminal business health metrics
+- Generalize behavior across multiple presets and random event sequences
+
 ### Reward Signal
 
 ```
@@ -62,11 +80,11 @@ reward = 0.00005 × revenue
 
 #### Reward Improvement
 ![TRL Reward Curve: Before vs After](training/trl_reward_curve.png)
-*Untrained base LM (random actions) vs TRL SFT fine-tuned model — clear reward improvement after training.*
+*Untrained base LM (random actions) vs TRL SFT fine-tuned model from an end-to-end environment-connected run.*
 
 #### Training Loss
 ![TRL Loss Curve](training/trl_loss_curve.png)
-*SFT training loss over 30 steps showing steady convergence.*
+*SFT training loss logged by the TRL trainer over 30 steps showing steady convergence.*
 
 ---
 
@@ -124,7 +142,9 @@ The script:
 1. Generates `(state → action)` pairs from the live environment
 2. Fine-tunes `distilgpt2` with TRL `SFTTrainer`
 3. Evaluates reward **before vs after** training
-4. Saves `training/trl_reward_curve.png`
+4. Saves `training/trl_reward_curve.png` and `training/trl_loss_curve.png`
+
+For judging, use plots produced by this TRL run (trainer logs + model evaluation), not synthetic/demo-only curves.
 
 ---
 
