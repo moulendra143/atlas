@@ -22,7 +22,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Keep existing frontend contract under `/api/*`.
 app.include_router(router, prefix="/api")
+# Also expose OpenEnv-style endpoints at the root (`/reset`, `/step`, `/state`),
+# so OpenEnv clients/judges can interact without needing the `/api` prefix.
+app.include_router(router)
 
 
 @app.on_event("startup")

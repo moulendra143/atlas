@@ -108,6 +108,21 @@ Outputs:
 - Random vs trained-like average reward
 - Reward curve image: `training/reward_curve.png`
 
+## TRL (Colab) Training Evidence
+
+The Colab notebook runs `training/trl_colab_minimal.py` which:
+
+- Generates data from the environment
+- Fine-tunes a tiny LM with TRL `SFTTrainer`
+- Evaluates **reward before vs after training**
+- Saves a comparison plot: `training/trl_reward_curve.png`
+
+## OpenEnv Manifest (Table Stakes)
+
+This repo includes the required OpenEnv environment manifest:
+
+- `openenv.yaml`
+
 ## OpenEnv Compliance
 
 ATLAS now includes an explicit OpenEnv adapter:
@@ -143,10 +158,10 @@ This section maps the hackathon minimum requirements to concrete artifacts in th
 
 2) **Minimal training script using Unsloth or HF TRL in Colab**  
 - Colab notebook: `training/TRL_Colab_Minimal.ipynb`  
-- Script it runs: `training/trl_colab_minimal.py` (generates data via the environment, then runs TRL `SFTTrainer`).
+- Script it runs: `training/trl_colab_minimal.py` (generates data via the environment, runs TRL `SFTTrainer`, then evaluates **reward before vs after** and saves `training/trl_reward_curve.png`).
 
 3) **Mini-blog (HF) or mini-video (YouTube) < 2 minutes**  
-- Add your link here (required for judging): **TODO: paste blog/video link**
+- Link: https://youtu.be/1aWDCkJ3Uyc
 
 4) **Hosted on Hugging Face Spaces**  
 - Space page: https://huggingface.co/spaces/nelluru/ATLAS  

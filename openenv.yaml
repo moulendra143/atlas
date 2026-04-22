@@ -1,0 +1,13 @@
+spec_version: 1
+name: atlas
+type: space
+runtime: fastapi
+app: backend.main:app
+port: 7860
+description: >
+  ATLAS is a multi-agent startup management simulation where an AI CEO coordinates
+  multiple department agents over a 90-day quarter. The environment emits dense rewards
+  and supports training/evaluation loops (TRL/Unsloth) for the OpenEnv Hackathon.
+action_model: backend.openenv_models:AtlasAction
+observation_model: backend.openenv_models:AtlasObservation
+
