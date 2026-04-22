@@ -214,6 +214,22 @@ def main() -> None:
 
     print(f"Saved TRL SFT model to: {out_dir}")
 
+    # Plot Loss Curve
+    history = trainer.state.log_history
+    steps = [h["step"] for h in history if "loss" in h]
+    losses = [h["loss"] for h in history if "loss" in h]
+    if steps:
+        plt.figure(figsize=(8, 4))
+        plt.plot(steps, losses, label="SFT Training Loss", color="red")
+        plt.title("ATLAS TRL Training: Loss Curve")
+        plt.xlabel("Step")
+        plt.ylabel("Loss")
+        plt.legend()
+        plt.tight_layout()
+        loss_path = os.path.join("training", "trl_loss_curve.png")
+        plt.savefig(loss_path)
+        print(f"Saved TRL loss curve to: {loss_path}")
+
     # Reward evidence: evaluate AFTER training (reload from disk to match what judges re-run).
     print("Evaluating AFTER training...")
     trained_model = AutoModelForCausalLM.from_pretrained(out_dir)
@@ -224,11 +240,12 @@ def main() -> None:
 
     os.makedirs("training", exist_ok=True)
     plt.figure(figsize=(8, 4))
-    plt.plot(before_rewards, label="Untrained (base LM)")
-    plt.plot(after_rewards, label="Trained (TRL SFT)")
+    plt.plot(range(1, 4), before_rewards, marker="o", label="Untrained (base LM)")
+    plt.plot(range(1, 4), after_rewards, marker="s", label="Trained (TRL SFT)")
     plt.title("ATLAS TRL Reward: Before vs After")
     plt.xlabel("Episode")
     plt.ylabel("Total Reward")
+    plt.xticks([1, 2, 3])
     plt.legend()
     plt.tight_layout()
     out_path = os.path.join("training", "trl_reward_curve.png")

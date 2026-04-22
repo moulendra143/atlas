@@ -8,10 +8,7 @@ from gymnasium import spaces
 # - The latest releases are distributed as `openenv-core` and expose `openenv.core.*`.
 # - Some older examples use `openenv.env.Env`.
 # We keep compatibility with both so Colab installs of `openenv-core` don't fail.
-try:
-    from openenv.env import Env as OpenEnvBase  # type: ignore
-except Exception:  # pragma: no cover
-    OpenEnvBase = object  # Fallback to keep local env usable without OpenEnv installed.
+from openenv.core import Environment as OpenEnvBase
 
 from env.events import maybe_event
 from env.presets import PRESETS
@@ -202,17 +199,7 @@ class AtlasOpenEnv(OpenEnvBase):
 
     def __init__(self, preset: str = "startup"):
         self.core = AtlasStartupEnv(preset=preset)
-        # If we are running with an OpenEnv base class that supports this constructor,
-        # initialize it. Otherwise, we still provide reset/step/render in a Gym-like way.
-        try:
-            super().__init__(  # type: ignore[misc]
-                name="AtlasOpenEnv",
-                state_space=self.core.observation_space,
-                action_space=self.core.action_space,
-                episode_max_length=self.core.max_days * len(PHASES),
-            )
-        except TypeError:
-            pass
+        super().__init__()
         # Keep Gym-style aliases for compatibility with existing tooling.
         self.observation_space = self.core.observation_space
         self.action_space = self.core.action_space

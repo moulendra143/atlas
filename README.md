@@ -58,13 +58,24 @@ reward = 0.00005 × revenue
 
 *Random agent avg: ~4,200 | Heuristic (trained-like) avg: ~5,900 — **+39% improvement***
 
-### TRL SFT: Before vs After Training (6 episodes)
+### TRL SFT: Training Evidence (before-vs-after)
 
+#### Reward Improvement
 ![TRL Reward Curve: Before vs After](training/trl_reward_curve.png)
-
 *Untrained base LM (random actions) vs TRL SFT fine-tuned model — clear reward improvement after training.*
 
+#### Training Loss
+![TRL Loss Curve](training/trl_loss_curve.png)
+*SFT training loss over 30 steps showing steady convergence.*
+
 ---
+
+## Self-Improvement Strategy
+
+ATLAS is designed for recursive capability growth:
+1. **Adaptive Curricula**: The environment provides scenario presets (`startup` → `growth` → `crisis`). Agents follow an adaptive curriculum, training on stable environments before tackling high-volatility "black swan" events.
+2. **Heuristic Distillation (Expert-in-the-loop)**: The environment includes a heuristic "Expert" used to generate initial high-quality trajectories. These are distilled into the agent via SFT to establish a strong baseline.
+3. **Trajectory Filtering**: Using the dense reward signal, the system filters self-play trajectories, keeping only those that exceed the reward mean of the previous iteration for the next round of fine-tuning.
 
 ## Minimum Requirements Checklist
 
@@ -73,10 +84,10 @@ reward = 0.00005 × revenue
 | OpenEnv (latest release) `0.2.3` | ✅ | `requirements.txt`, `openenv.yaml` |
 | OpenEnv manifest | ✅ | `openenv.yaml` (repo root) |
 | TRL training script in Colab | ✅ | `training/TRL_Colab_Minimal.ipynb` |
-| Reward improvement evidence (plot) | ✅ | `training/reward_curve.png` + `training/trl_reward_curve.png` |
+| Training Evidence (plots) | ✅ | `reward_curve.png`, `trl_reward_curve.png`, `trl_loss_curve.png` |
 | Mini-video < 2 min | ✅ | https://youtu.be/1aWDCkJ3Uyc |
 | Hosted on Hugging Face Spaces | ✅ | https://huggingface.co/spaces/nelluru/ATLAS |
-| README with all links | ✅ | This file |
+| README with all links + Strategy | ✅ | This file |
 
 ---
 
@@ -141,8 +152,9 @@ atlas/
 │   ├── trl_colab_minimal.py  # TRL SFT before/after script
 │   ├── TRL_Colab_Minimal.ipynb
 │   ├── check_openenv.py   # OpenEnv adapter smoke-test
-│   ├── reward_curve.png   # Committed plot: random vs heuristic
-│   └── trl_reward_curve.png  # Committed plot: TRL before vs after
+│   ├── reward_curve.png   # Plot: random vs heuristic
+│   ├── trl_reward_curve.png  # Plot: TRL before vs after
+│   └── trl_loss_curve.png    # Plot: SFT training loss
 ├── openenv.yaml      # OpenEnv manifest (table stakes)
 ├── Dockerfile
 └── requirements.txt
