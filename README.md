@@ -1,6 +1,6 @@
 ---
 title: ATLAS
-emoji: ??
+emoji: "??"
 colorFrom: red
 colorTo: gray
 sdk: docker
