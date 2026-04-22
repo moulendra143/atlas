@@ -1,3 +1,11 @@
+---
+title: ATLAS
+emoji: ??
+colorFrom: red
+colorTo: gray
+sdk: docker
+pinned: false
+---
 # ATLAS: Multi-Agent Startup Management Simulation
 
 ATLAS is a real-time startup simulation where an AI CEO coordinates multiple autonomous department agents over a 90-day quarter.
@@ -16,17 +24,17 @@ ATLAS is a real-time startup simulation where an AI CEO coordinates multiple aut
 
 ```text
 atlas/
- â”œâ”€â”€ backend/
- â”œâ”€â”€ frontend/
- â”œâ”€â”€ env/
- â”œâ”€â”€ agents/
- â”œâ”€â”€ training/
- â”œâ”€â”€ data/
- â”œâ”€â”€ docker/
- â”œâ”€â”€ README.md
- â”œâ”€â”€ requirements.txt
- â”œâ”€â”€ run_backend.ps1
- â””â”€â”€ run_frontend.ps1
+ Gö£GöÇGöÇ backend/
+ Gö£GöÇGöÇ frontend/
+ Gö£GöÇGöÇ env/
+ Gö£GöÇGöÇ agents/
+ Gö£GöÇGöÇ training/
+ Gö£GöÇGöÇ data/
+ Gö£GöÇGöÇ docker/
+ Gö£GöÇGöÇ README.md
+ Gö£GöÇGöÇ requirements.txt
+ Gö£GöÇGöÇ run_backend.ps1
+ GööGöÇGöÇ run_frontend.ps1
 ```
 
 ## Run Locally (Windows PowerShell)
