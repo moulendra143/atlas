@@ -24,17 +24,17 @@ ATLAS is a real-time startup simulation where an AI CEO coordinates multiple aut
 
 ```text
 atlas/
- Gö£GöÇGöÇ backend/
- Gö£GöÇGöÇ frontend/
- Gö£GöÇGöÇ env/
- Gö£GöÇGöÇ agents/
- Gö£GöÇGöÇ training/
- Gö£GöÇGöÇ data/
- Gö£GöÇGöÇ docker/
- Gö£GöÇGöÇ README.md
- Gö£GöÇGöÇ requirements.txt
- Gö£GöÇGöÇ run_backend.ps1
- GööGöÇGöÇ run_frontend.ps1
+ ??? backend/
+ ??? frontend/
+ ??? env/
+ ??? agents/
+ ??? training/
+ ??? data/
+ ??? docker/
+ ??? README.md
+ ??? requirements.txt
+ ??? run_backend.ps1
+ ??? run_frontend.ps1
 ```
 
 ## Run Locally (Windows PowerShell)
