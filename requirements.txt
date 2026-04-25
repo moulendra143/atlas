@@ -14,7 +14,7 @@ trl>=0.8.6
 transformers>=4.40.0
 datasets>=2.19.0
 torch>=2.2.0
-unsloth
+# unsloth  # Optional: install separately in GPU training environments. Not required for serving.
 accelerate>=0.30.0
 openai>=1.25.0
 requests>=2.31.0

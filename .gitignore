@@ -7,3 +7,6 @@ frontend/dist/
 .env
 scratch/
 training/trl_ppo_out/
+training/trl_grpo_out/
+data/*.pdf
+data/*.txt

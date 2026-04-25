@@ -59,27 +59,41 @@ def _build_token_maps(tokenizer: AutoTokenizer) -> Tuple[List[int], Dict[int, in
     id_to_action = {tid: idx for idx, tid in enumerate(token_ids)}
     return token_ids, id_to_action
 
-def verify_business_health(prompts, completions, **kwargs):
+def verify_business_health(prompts, completions, obs_list=None, **kwargs):
     """
     Reward function for GRPO. Verifies if the chosen action led to a positive business outcome.
-    In a real GRPO setup, we use an environment stepping mechanism here or an explicit verifier.
+    Steps the environment from the ACTUAL state described in the prompt (not a fresh reset),
+    making this a true environment-connected verifier as required by the hackathon guide.
     """
     rewards = []
     env = AtlasOpenEnv(preset="startup")
-    # A lightweight deterministic simulation for verifiability
-    for prompt, completion in zip(prompts, completions):
-        obs, info = env.reset()
+    obs_data = kwargs.get("obs", obs_list)  # passed from dataset via GRPOTrainer kwargs
+
+    for i, (prompt, completion) in enumerate(zip(prompts, completions)):
+        # Restore the actual environment state from the dataset obs vector.
+        env.core.reset()
+        if obs_data is not None and i < len(obs_data):
+            actual_obs = obs_data[i]
+            # Manually set env state to match the obs that generated this prompt.
+            state_keys = [
+                "cash_balance", "revenue", "burn_rate", "employee_morale",
+                "product_progress", "customer_satisfaction", "investor_trust",
+                "pending_tasks", "crises", "market_trend",
+            ]
+            for k, v in zip(state_keys, actual_obs):
+                env.core.state[k] = float(v)
+
         action_text = completion[0].strip() if isinstance(completion, list) else completion.strip()
-        
-        # Try to map completion to action
         try:
             action_idx = ACTION_TOKENS.index(action_text)
-            _, reward, _, _, _ = env.step(action_idx)
-            rewards.append(float(reward))
+            _, reward, _, _, info = env.core.step(action_idx)
+            # Multi-objective signal: include mandate compliance in the reward breakdown
+            mandate = info.get("mandate", "")
+            mandate_bonus = info.get("reward_breakdown", {}).get("mandate_compliance", 0.0)
+            rewards.append(float(reward) + mandate_bonus)
         except ValueError:
-            # Invalid action format
             rewards.append(-8.0)
-            
+
     return rewards
 
 def main():
@@ -110,23 +124,29 @@ def main():
         num_generations=2,
     )
 
-    # Generate real prompts from actual environment rollouts (not dummy data)
+    # Generate real prompts AND obs vectors from actual environment rollouts
     print("Generating environment rollout prompts...")
     prompts = []
+    obs_list = []
     env_for_data = AtlasOpenEnv(preset="startup")
     for _ in range(10):
         obs, info = env_for_data.reset()
         mandate = info.get("mandate", "Balanced Stability")
         prompts.append(_format_prompt(obs, mandate))
+        obs_list.append(obs.tolist())
         # Take a few steps to get diverse states
         for _ in range(3):
             action = random.randint(0, len(ACTIONS) - 1)
             obs, _, done, _, info = env_for_data.step(action)
             if not done:
                 prompts.append(_format_prompt(obs, mandate))
+                obs_list.append(obs.tolist())
 
     from datasets import Dataset
-    dummy_dataset = Dataset.from_dict({"prompt": prompts[:16]})
+    dummy_dataset = Dataset.from_dict({
+        "prompt": prompts[:16],
+        "obs": obs_list[:16],  # pass actual obs so verifier steps from correct state
+    })
 
     trainer = GRPOTrainer(
         model=model,

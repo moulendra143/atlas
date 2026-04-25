@@ -38,10 +38,7 @@ endpoints:
   state:
     method: GET
     path: /state
-  observation:
-    method: GET
-    path: /state
-    description: Alias for state — returns AtlasObservation (state, reward, done, info).
+    description: Returns AtlasObservation (state dict, reward=0, done, info with day/phase/episode_id).
 
 rubric:
   - name: revenue_reward
@@ -64,4 +61,10 @@ rubric:
     weight: 0.10
   - name: invalid_action_penalty
     description: Penalty of -8.0 for any action index outside [0-12]
+    weight: 0.05
+  - name: mandate_compliance
+    description: >-
+      Process-aware bonus (+1.0) or penalty (-1.0) if the chosen action aligns
+      with or opposes the active Board Mandate (Growth / Cost-Efficiency / Balanced).
+      Prevents reward hacking by requiring instruction-following alongside task success.
     weight: 0.05

@@ -97,9 +97,15 @@ reward = 0.00005 × revenue
 *X-axis: Training step | Y-axis: SFT cross-entropy loss. Loss converges steadily over 30 steps, confirming the model learned to imitate environment-optimal actions.*
 
 ### TRL GRPO / PPO RL: Verifiable Reward-Driven Improvement
-
-Run `python training/trl_grpo_rl.py` (or `trl_ppo_rl.py`) to execute reinforcement learning episodes where the model takes actions in the environment, receives verifiable reward/penalty signals, and updates policy via TRL GRPO/PPO.
-
+The GRPO/PPO RL loop connects the trained LLM directly to the **live environment** (not a static dataset).
+
+Run \python training/trl_ppo_rl.py\ (16 episodes, curriculum: growth→startup→crisis):
+
+![PPO Reward Curve](training/trl_ppo_reward_curve.png)
+*X-axis: Episode | Y-axis: Total cumulative reward. Blue = per-episode, Orange = rolling avg, Gray = baseline.*
+
+> **8 Independent Reward Signals (Anti-Hacking):** Revenue, Morale, CSAT, Trust, Burn(-), Crisis(-), Invalid(-8), **Mandate Compliance(±1.0)**. Mandate bonus stops single-metric reward hacking.
+
 ---
 
 ## Self-Improvement Strategy

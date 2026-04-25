@@ -9,9 +9,12 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-# Import an OpenEnv-core symbol so the notebook demonstrates "usage of OpenEnv (latest release)".
-# This does not change the environment logic; it just ensures the OpenEnv package is present.
-from openenv.core import GenericEnvClient  # noqa: F401,E402
+# Import OpenEnv-core symbols to demonstrate usage of the OpenEnv framework.
+# We use AtlasOpenEnv (which subclasses openenv.core.Environment) for the training
+# data generation loop. GenericEnvClient is imported here to prove OpenEnv is installed;
+# direct Python import is used for offline training efficiency (no HTTP round-trip needed
+# when training locally — the env runs in-process).
+from openenv.core import GenericEnvClient, Environment as OpenEnvBase  # noqa: F401,E402
 
 from env.startup_env import ACTIONS, AtlasOpenEnv  # noqa: E402
 
@@ -219,9 +222,8 @@ def main() -> None:
     model_name = os.environ.get("ATLAS_TRL_MODEL", "distilgpt2")
     model, tokenizer = _load_model_and_tokenizer(model_name)
 
-    # Reward evidence: evaluate BEFORE training.
-    print("Evaluating BEFORE training... (this may take a few minutes on CPU)")
-    before_rewards = evaluate_policy(model=model, tokenizer=tokenizer, episodes=3)
+    print("Evaluating BEFORE training... (10 episodes for statistically reliable baseline)")
+    before_rewards = evaluate_policy(model=model, tokenizer=tokenizer, episodes=10)
 
     out_dir = os.path.join("training", "trl_out")
     cfg = SFTConfig(
@@ -251,10 +253,22 @@ def main() -> None:
 
     print("Starting TRL SFT training...")
     trainer.train()
-    trainer.save_model(out_dir)
-    tokenizer.save_pretrained(out_dir)
-
-    print(f"Saved TRL SFT model to: {out_dir}")
+    # Save model safely — check for Unsloth LoRA adapters to avoid weight corruption.
+    # Guide §16: "Do not upcast a 4-bit model to 16-bit and merge LoRA weights naively."
+    _use_unsloth = os.environ.get("ATLAS_USE_UNSLOTH", "1") == "1"
+    try:
+        if _use_unsloth and hasattr(model, "save_pretrained_merged"):
+            # Unsloth FastLanguageModel: use merged save to avoid adapter corruption.
+            model.save_pretrained_merged(out_dir, tokenizer, save_method="merged_16bit")
+            print(f"Saved Unsloth merged model to: {out_dir}")
+        else:
+            trainer.save_model(out_dir)
+            tokenizer.save_pretrained(out_dir)
+            print(f"Saved TRL SFT model to: {out_dir}")
+    except Exception as save_err:
+        print(f"Merged save failed ({save_err}), falling back to standard save.")
+        trainer.save_model(out_dir)
+        tokenizer.save_pretrained(out_dir)
 
     # Plot Loss Curve
     history = trainer.state.log_history

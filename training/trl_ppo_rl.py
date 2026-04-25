@@ -252,6 +252,17 @@ def _run_reinforce_curriculum(cfg: RunConfig) -> None:
             f"Episode {ep + 1:02d}/{cfg.episodes} | stage={stage['name']} "
             f"steps={steps} | total_reward={total_reward:.2f}"
         )
+        # Guide §15: Inspect actual generations periodically — not just reward scalars.
+        if (ep + 1) % 5 == 0 or ep == 0:
+            mandate = getattr(env, "mandate", "Balanced Stability")
+            sample_prompt = _format_prompt(obs, mandate)
+            inputs = tokenizer(sample_prompt[-200:], return_tensors="pt")  # last 200 chars
+            with torch.no_grad():
+                logits = model(**inputs).logits[0, -1, action_token_ids]
+            probs = torch.softmax(logits, dim=-1)
+            top_idx = int(probs.argmax().item())
+            print(f"  [INSPECT ep{ep+1}] mandate='{mandate[:30]}...' "
+                  f"top_action={ACTIONS[top_idx]} (prob={probs[top_idx]:.3f})")
 
     model.save_pretrained(cfg.output_dir)
     tokenizer.save_pretrained(cfg.output_dir)

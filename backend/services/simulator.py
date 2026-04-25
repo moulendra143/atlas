@@ -1,3 +1,4 @@
+import concurrent.futures
 import random
 from typing import Dict, Optional
 
@@ -47,7 +48,14 @@ class SimulationService:
                 # Use state_snapshot() — public read-only view.
                 state_plus = self.env.state_snapshot()
                 state_plus["mandate"] = getattr(self.env, "mandate", "None")
-                action_idx = self.llm.get_action(state_plus)
+                # Guide §10: Wall-clock timeout so LLM CEO never hangs the WebSocket loop.
+                try:
+                    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
+                        future = ex.submit(self.llm.get_action, state_plus)
+                        action_idx = future.result(timeout=8.0)
+                except concurrent.futures.TimeoutError:
+                    print("LLM CEO timed out (>8s); falling back to random action.")
+                    action_idx = random.randint(0, len(ACTIONS) - 1)
             else:
                 action_idx = random.randint(0, len(ACTIONS) - 1)
         obs, reward, terminated, truncated, info = self.env.step(action_idx)

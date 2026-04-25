@@ -191,6 +191,7 @@ class AtlasStartupEnv(gym.Env):
             "trust_reward": 0.0,
             "burn_penalty": 0.0,
             "crisis_penalty": 0.0,
+            "mandate_compliance": 0.0,
         }
         if action == "hire_employee":
             self.state["burn_rate"] += 2000
@@ -240,6 +241,8 @@ class AtlasStartupEnv(gym.Env):
         reward_breakdown["trust_reward"] = 0.01 * self.state["investor_trust"]
         reward_breakdown["burn_penalty"] = -0.00004 * self.state["burn_rate"]
         reward_breakdown["crisis_penalty"] = -0.02 * self.state["crises"]
+        # Mandate compliance: process-aware bonus/penalty for instruction following.
+        reward_breakdown["mandate_compliance"] = self._mandate_compliance_bonus(action)
         reward_breakdown["business_reward"] = (
             reward_breakdown["revenue_reward"]
             + reward_breakdown["morale_reward"]
@@ -247,9 +250,36 @@ class AtlasStartupEnv(gym.Env):
             + reward_breakdown["trust_reward"]
             + reward_breakdown["burn_penalty"]
             + reward_breakdown["crisis_penalty"]
+            + reward_breakdown["mandate_compliance"]
         )
         reward_breakdown["action_reward"] += reward_breakdown["business_reward"]
         return float(reward_breakdown["action_reward"]), reward_breakdown
+
+    def _mandate_compliance_bonus(self, action: str) -> float:
+        """Process-aware reward: bonus if action aligns with Board Mandate, penalty if it opposes it.
+        This prevents reward hacking by ensuring the policy must follow strategic directives."""
+        mandate = getattr(self, "mandate", "") or ""
+        m = mandate.lower()
+        if "growth" in m:
+            # Growth mandate: reward actions that expand revenue/product.
+            if action in {"hire_employee", "assign_engineering_task", "launch_product",
+                          "run_ads", "negotiate_client", "raise_funding"}:
+                return 1.0
+            if action in {"fire_employee", "reduce_costs"}:
+                return -1.0
+        elif "cost" in m or "efficiency" in m:
+            # Cost-efficiency mandate: reward actions that reduce burn or preserve cash.
+            if action in {"fire_employee", "reduce_costs", "negotiate_client", "fix_bug_crisis"}:
+                return 1.0
+            if action in {"hire_employee", "increase_salaries", "improve_culture", "give_bonuses",
+                          "run_ads"}:
+                return -1.0
+        elif "balanced" in m or "stability" in m:
+            # Balanced mandate: reward morale and customer actions.
+            if action in {"improve_culture", "give_bonuses", "fix_bug_crisis",
+                          "assign_engineering_task"}:
+                return 0.5
+        return 0.0  # neutral — no mandate or unrecognized
 
     def _apply_event(self, event: str) -> float:
         """FIX ENV #1 & #2: Handle all 10 events with correct rewards and market_trend updates."""
@@ -332,9 +362,17 @@ class AtlasOpenEnv(OpenEnvBase):
         return self.core.observation()
 
     def get_state(self):
+        """Safe alias for MCP tools — 'state' is a reserved OpenEnv tool name (guide §4)."""
         s = self.core.state.copy()
         s["mandate"] = getattr(self, "mandate", "None")
         return s
+
+    def state(self):
+        """Required implementation of OpenEnvBase abstract method.
+        NOTE: Do NOT expose this as an MCP tool — 'state' is a reserved tool name per guide §4.
+        Use get_state() in MCP tool definitions instead.
+        """
+        return self.get_state()
 
     def state_snapshot(self) -> Dict[str, float]:
         """Public read-only view — delegates to core env."""
