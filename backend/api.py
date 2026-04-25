@@ -129,21 +129,25 @@ def investor_report(episode_id: int):
         ep = db.query(EpisodeLog).filter(EpisodeLog.id == episode_id).first()
         if not ep:
             raise HTTPException(status_code=404, detail="Episode not found")
+        
+        summary = ep.summary or {}
+        
+        metrics = {
+            "Episode ID": ep.id,
+            "Mode/Preset": ep.mode.capitalize() if ep.mode else "N/A",
+            "Policy": ep.policy_name,
+            "Total Steps": ep.steps,
+            "Total Reward": round(ep.total_reward, 2),
+            "Final Cash ($)": f"{round(ep.final_cash, 2):,}",
+            "Final Revenue ($)": f"{round(ep.final_revenue, 2):,}",
+            "Employee Morale": summary.get("morale", "N/A"),
+            "Customer Satisfaction": summary.get("customer_satisfaction", "N/A"),
+            "Investor Trust": summary.get("investor_trust", "N/A"),
+        }
     finally:
         db.close()
 
     os.makedirs("data", exist_ok=True)
     path = f"data/investor_report_{episode_id}.pdf"
-    generate_investor_report(
-        path,
-        {
-            "episode_id": ep.id,
-            "mode": ep.mode,
-            "policy": ep.policy_name,
-            "total_reward": round(ep.total_reward, 2),
-            "final_cash": round(ep.final_cash, 2),
-            "final_revenue": round(ep.final_revenue, 2),
-            "steps": ep.steps,
-        },
-    )
+    generate_investor_report(path, metrics)
     return FileResponse(path=path, filename=os.path.basename(path), media_type="application/pdf")
