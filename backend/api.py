@@ -7,6 +7,7 @@ from backend.db import EpisodeLog, SessionLocal, StepLog
 from backend.schemas import ResetRequest, StepRequest
 from backend.services.report import generate_investor_report
 from backend.services.simulator import SimulationService
+from env.startup_env import PHASES
 
 router = APIRouter()
 sim = None
@@ -46,7 +47,7 @@ def state():
             "log_size": len(current_sim.decision_log),
             "episode_id": current_sim.episode_id,
             "day": current_sim.env.day,
-            "phase": current_sim.env.phase_idx,
+            "phase": PHASES[current_sim.env.phase_idx],
         },
     }
 

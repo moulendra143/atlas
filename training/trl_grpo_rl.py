@@ -110,11 +110,23 @@ def main():
         num_generations=2,
     )
 
-    # In a full run, a dataset of environment states would be provided
+    # Generate real prompts from actual environment rollouts (not dummy data)
+    print("Generating environment rollout prompts...")
+    prompts = []
+    env_for_data = AtlasOpenEnv(preset="startup")
+    for _ in range(10):
+        obs, info = env_for_data.reset()
+        mandate = info.get("mandate", "Balanced Stability")
+        prompts.append(_format_prompt(obs, mandate))
+        # Take a few steps to get diverse states
+        for _ in range(3):
+            action = random.randint(0, len(ACTIONS) - 1)
+            obs, _, done, _, info = env_for_data.step(action)
+            if not done:
+                prompts.append(_format_prompt(obs, mandate))
+
     from datasets import Dataset
-    dummy_dataset = Dataset.from_dict({
-        "prompt": [_format_prompt(np.zeros(10), "Maximize Growth")] * 10
-    })
+    dummy_dataset = Dataset.from_dict({"prompt": prompts[:16]})
 
     trainer = GRPOTrainer(
         model=model,

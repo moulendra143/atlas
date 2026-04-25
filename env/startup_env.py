@@ -331,7 +331,7 @@ class AtlasOpenEnv(OpenEnvBase):
     def observation(self):
         return self.core.observation()
 
-    def state(self):
+    def get_state(self):
         s = self.core.state.copy()
         s["mandate"] = getattr(self, "mandate", "None")
         return s

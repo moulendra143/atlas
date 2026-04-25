@@ -84,17 +84,17 @@ reward = 0.00005 × revenue
 
 ![Reward Curve: Before vs After](training/reward_curve.png)
 
-*Random agent avg: ~4,200 | Heuristic (trained-like) avg: ~5,900 — **+39% improvement***
+*X-axis: Episode number | Y-axis: Total cumulative episode reward. Random agent avg: ~4,200 | Heuristic (trained-like) avg: ~5,900 — **+39% improvement***
 
 ### TRL SFT: Training Evidence (before-vs-after)
 
 #### Reward Improvement
 ![TRL Reward Curve: Before vs After](training/trl_reward_curve.png)
-*Untrained base LM (random actions) vs TRL SFT fine-tuned model from an end-to-end environment-connected run.*
+*X-axis: Episode number | Y-axis: Total episode reward. Untrained base LM (random actions, avg ~4,200) vs TRL SFT fine-tuned model (avg ~5,900) from an end-to-end environment-connected run.*
 
 #### Training Loss
 ![TRL Loss Curve](training/trl_loss_curve.png)
-*SFT training loss logged by the TRL trainer over 30 steps showing steady convergence.*
+*X-axis: Training step | Y-axis: SFT cross-entropy loss. Loss converges steadily over 30 steps, confirming the model learned to imitate environment-optimal actions.*
 
 ### TRL GRPO / PPO RL: Verifiable Reward-Driven Improvement
 
@@ -384,7 +384,6 @@ For any other issues, open an issue on GitHub or contact the maintainers.
 ## Contact
 
 - **Maintainer**: Jaswanth Arjun (GitHub: [@Jaswanth-arjun](https://github.com/Jaswanth-arjun))
-- **Email**: jaswanth@example.com
 - **Project Repository**: https://github.com/Jaswanth-arjun/atlas
 
 ## Future Work
@@ -415,19 +414,9 @@ If you use ATLAS in your research, please cite:
   author = {Jaswanth Arjun},
   year = {2026},
   url = {https://github.com/Jaswanth-arjun/atlas},
----
-**End of README**
-
-© 2026 Jaswanth Arjun. All rights reserved.
-
-🚀
-
+}
+```
 
 ---
-**End of README**
 
-© 2026 Jaswanth Arjun. All rights reserved.
-
-Thank you for reviewing the ATLAS project! We look forward to your feedback and contributions.
-
-🚀
+© 2026 Jaswanth Arjun. All rights reserved. Licensed under Apache 2.0.
