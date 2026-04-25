@@ -27,8 +27,8 @@ export default function EventFeed({ events }) {
     <div className="glass-card h-80">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="panel-title mb-0">Crisis Alerts</h2>
-        <span className="text-xs text-rose-300 animate-pulse font-medium flex items-center gap-0.5">
-          <span className="text-2xl leading-none relative -top-[3px]">.</span>Live Feed
+        <span className="text-xs text-rose-300 font-medium flex items-center gap-0.5">
+          <span className="text-3xl font-black text-rose-500 animate-pulse drop-shadow-[0_0_6px_rgba(244,63,94,0.9)] leading-none relative -top-[4px]">.</span>Live Feed
         </span>
       </div>
       <div className="grid h-[90%] grid-cols-[155px_1fr] gap-3">
