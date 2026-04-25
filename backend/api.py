@@ -10,6 +10,8 @@ from backend.services.simulator import SimulationService
 
 router = APIRouter()
 sim = None
+sim_paused = False
+sim_speed = 1.0
 
 
 def ensure_sim() -> SimulationService:
@@ -39,7 +41,27 @@ def state():
         "done": current_sim.done,
         "log_size": len(current_sim.decision_log),
         "episode_id": current_sim.episode_id,
+        "day": current_sim.env.day,
+        "phase": current_sim.env.phase_idx
     }
+
+@router.post("/pause")
+def pause():
+    global sim_paused
+    sim_paused = True
+    return {"paused": True}
+
+@router.post("/resume")
+def resume():
+    global sim_paused
+    sim_paused = False
+    return {"paused": False}
+
+@router.post("/speed")
+def speed(val: float = 1.0):
+    global sim_speed
+    sim_speed = max(0.1, min(val, 5.0))
+    return {"speed": sim_speed}
 
 
 @router.get("/leaderboard")

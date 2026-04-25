@@ -21,6 +21,10 @@ export default function RewardChart({ data }) {
               <stop offset="5%" stopColor="#c084fc" stopOpacity={0.4} />
               <stop offset="95%" stopColor="#c084fc" stopOpacity={0} />
             </linearGradient>
+            <linearGradient id="cumulativeFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#f472b6" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="#f472b6" stopOpacity={0} />
+            </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="4 4" stroke="#1e293b" />
           <XAxis dataKey="step" stroke="#64748b" />
@@ -29,10 +33,25 @@ export default function RewardChart({ data }) {
           <Area
             type="monotone"
             dataKey="reward"
+            name="Step Reward"
             stroke="#c084fc"
             fill="url(#rewardFill)"
             strokeWidth={2.8}
-            dot={false}
+            dot={true}
+            activeDot={{ r: 6 }}
+            isAnimationActive
+            animationDuration={280}
+            animationEasing="linear"
+          />
+          <Area
+            type="monotone"
+            dataKey="cumulative_reward"
+            name="Cumulative Reward"
+            stroke="#f472b6"
+            fill="url(#cumulativeFill)"
+            strokeWidth={2}
+            dot={true}
+            activeDot={{ r: 6 }}
             isAnimationActive
             animationDuration={280}
             animationEasing="linear"

@@ -59,7 +59,7 @@ class SimulationService:
             "mandate": getattr(self.env, "mandate", "None"),
             "action": action_name,
             "reward": reward,
-            "event": {"name": info.get("event")} if info.get("event") else None,
+            "event": {"name": info.get("event"), "severity": "critical" if info.get("event") in ["server_outage", "market_crash", "key_employee_resigns", "customer_complaints_spike"] else "info"} if info.get("event") else None,
             "reactions": reactions,
             "done": self.done,
             "episode_id": self.episode_id,

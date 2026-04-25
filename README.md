@@ -262,8 +262,9 @@ The dashboard will now show the AI making decisions in real-time!
 ## Stack
 
 - **Backend:** Python 3.11, FastAPI, WebSocket, SQLite/SQLAlchemy
-- **Frontend:** React, Tailwind, Recharts dashboard
+- **Frontend:** React, Zustand (Global State + Persistence), Tailwind, Recharts dashboard
 - **Environment:** Gymnasium-compatible, OpenEnv adapter
+- **AI Features:** Explainable AI (Decision Reasons), TRL `SFTTrainer`/`PPOTrainer`, Unsloth
 - **Training:** Hugging Face TRL (`SFTTrainer`, `PPOTrainer`), optional Unsloth acceleration, `distilgpt2`
 - **Hosting:** Docker, Hugging Face Spaces
 
@@ -328,3 +329,98 @@ atlas/
 4. Show leaderboard and replay a previous quarter
 5. Run `python training/train.py` → show `reward_curve.png` improvement
 6. Run `python training/trl_ppo_rl.py` to show reward-driven RL policy improvement
+ 
+## Real-Time Control API
+
+The simulation now supports pause, resume, and speed adjustment via the following endpoints:
+
+- `POST /pause` – Pauses the simulation loop.
+- `POST /resume` – Resumes a paused simulation.
+- `POST /speed?val=<factor>` – Sets simulation speed multiplier (0.1× … 5×). Default is `1.0`.
+
+These can be triggered from the dashboard UI (buttons added to the top bar) or via curl:
+
+```bash
+curl -X POST http://localhost:8000/pause
+curl -X POST http://localhost:8000/resume
+curl -X POST "http://localhost:8000/speed?val=2.0"
+```
+
+The UI now displays pause/resume buttons and speed selectors next to the mode dropdown, allowing you to control the simulation during live demos.
+
+## Contributing
+
+We welcome contributions! Please fork the repository and submit pull requests. Ensure that any new features include:
+- Updated documentation in the README.
+- Corresponding unit tests.
+- Adjustments to the OpenEnv manifest if you add new observation/action spaces.
+
+## License
+
+This project is licensed under the Apache License 2.0. See the `LICENSE` file for details.
+
+## Acknowledgements
+
+- **OpenEnv** – for providing a standardized RL environment interface.
+- **TRL** – for simplifying SFT and PPO training pipelines.
+- **Unsloth** – for fast, low‑memory finetuning.
+- The hackathon judges and community for valuable feedback.
+
+## Troubleshooting
+
+- **WebSocket connection fails**: Ensure the backend is running on port 8000 and that no firewall blocks the connection.
+- **Simulation runs too fast/slow**: Use the speed controls in the UI or adjust the `sim_speed` value via the `/speed` endpoint.
+- **Missing environment variables**: Verify that your API keys (e.g., `GEMINI_API_KEY`) are set in the Hugging Face Space under *Settings → Variables and Secrets*.
+- **Training script errors**: Check that `requirements.txt` dependencies are installed and that you are using Python 3.11+. Re‑run `pip install -r requirements.txt`.
+
+For any other issues, open an issue on GitHub or contact the maintainers.
+## Contact
+
+- **Maintainer**: Jaswanth Arjun (GitHub: [@Jaswanth-arjun](https://github.com/Jaswanth-arjun))
+- **Email**: jaswanth@example.com
+- **Project Repository**: https://github.com/Jaswanth-arjun/atlas
+
+## Future Work
+
+- **Multi‑CEO Collaboration**: Enable multiple AI CEOs to coordinate across subsidiaries.
+- **Extended Curriculum**: Add more challenging presets (e.g., global expansion, regulatory crises).
+- **Explainability Dashboard**: Visualize per‑step reward breakdowns and decision rationales for judges.
+- **Integration with Real‑World Datasets**: Incorporate market data APIs to ground simulations in actual economic trends.
+
+---
+**Thank you for exploring ATLAS!**
+We hope this project inspires innovative AI-driven management simulations. Feel free to star the repository, open issues, or submit pull requests.
+
+<details>
+<summary>Quick Links</summary>
+- [Live Space](https://huggingface.co/spaces/nelluru/ATLAS)
+- [Demo Video](https://youtu.be/1aWDCkJ3Uyc)
+- [GitHub Repo](https://github.com/Jaswanth-arjun/atlas)
+</details>
+---
+### Citation
+
+If you use ATLAS in your research, please cite:
+
+```bibtex
+@software{atlas2026,
+  title = {ATLAS: Multi-Agent Startup Management Simulation},
+  author = {Jaswanth Arjun},
+  year = {2026},
+  url = {https://github.com/Jaswanth-arjun/atlas},
+---
+**End of README**
+
+© 2026 Jaswanth Arjun. All rights reserved.
+
+🚀
+
+
+---
+**End of README**
+
+© 2026 Jaswanth Arjun. All rights reserved.
+
+Thank you for reviewing the ATLAS project! We look forward to your feedback and contributions.
+
+🚀

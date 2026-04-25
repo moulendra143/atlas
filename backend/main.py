@@ -45,6 +45,10 @@ async def simulation_stream_loop():
     last_done_episode_id = None
     try:
         while ws_manager.connections:
+            if api_module.sim_paused:
+                await asyncio.sleep(0.5)
+                continue
+
             sim = api_module.ensure_sim()
             if sim.done:
                 if sim.episode_id != last_done_episode_id:
@@ -56,12 +60,12 @@ async def simulation_stream_loop():
             frame = sim.step()
             await ws_manager.broadcast("state_update", frame)
             if frame["event"]:
-                await ws_manager.broadcast("market_event", {"event": frame["event"]["name"]})
+                await ws_manager.broadcast("market_event", {"event": frame["event"]})
             await ws_manager.broadcast("reward_update", {"reward": frame["reward"]})
             if frame["done"]:
                 await ws_manager.broadcast("episode_done", {"final_state": frame["state"]})
                 last_done_episode_id = frame["episode_id"]
-            await asyncio.sleep(1.0)
+            await asyncio.sleep(1.0 / api_module.sim_speed)
     finally:
         stream_task = None
 

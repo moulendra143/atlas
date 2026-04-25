@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 
 import DecisionLog from "./components/DecisionLog";
 import EmployeeMoodChart from "./components/EmployeeMoodChart";
@@ -9,37 +9,58 @@ import RewardChart from "./components/RewardChart";
 import StatsGrid from "./components/StatsGrid";
 import { api } from "./services/api";
 import { connectWS } from "./services/ws";
+import { useStore } from "./store";
 
 const MAX_POINTS = 120;
 const NAV_ITEMS = ["Dashboard", "Overview", "Analytics", "Decisions", "Market", "Team", "Reports", "Settings"];
 
+function getReason(action, state, phase) {
+  const reasons = {
+    "hire_employee": `Need more capacity. Revenue: $${state?.revenue}`,
+    "fire_employee": `Cutting costs. Burn rate was high.`,
+    "increase_salaries": `Boosting morale which was at ${state?.employee_morale}.`,
+    "assign_engineering_task": `Accelerating product progress to meet targets.`,
+    "launch_product": `Capitalizing on completed features to boost revenue.`,
+    "run_ads": `Scaling customer acquisition.`,
+    "negotiate_client": `Securing B2B revenue and investor trust.`,
+    "reduce_costs": `Preserving cash runway.`,
+    "raise_funding": `Cash reserves running low ($${state?.cash_balance}).`,
+    "fix_bug_crisis": `Resolving active crises to prevent churn.`,
+    "improve_culture": `Investing in long-term employee satisfaction.`,
+    "give_bonuses": `Short-term morale boost to retain team.`,
+    "change_roadmap": `Pivoting to align with Board mandate.`
+  };
+  return reasons[action] || `Strategic decision for ${phase} phase.`;
+}
+
 export default function App() {
-  const [state, setState] = useState(null);
-  const [mode, setMode] = useState("startup");
-  const [done, setDone] = useState(false);
-  const [episodeId, setEpisodeId] = useState(null);
-  const [events, setEvents] = useState([]);
-  const [decisions, setDecisions] = useState([]);
-  const [rewards, setRewards] = useState([]);
-  const [history, setHistory] = useState([]);
-  const [moraleHistory, setMoraleHistory] = useState([]);
-  const [leaderboard, setLeaderboard] = useState([]);
+  const {
+    state, mode, done, episodeId, events, decisions, rewards, history, moraleHistory, leaderboard, currentDay, currentPhase,
+    setState, setMode, setDone, setEpisodeId, setEvents, setDecisions, setRewards, setHistory, setMoraleHistory, setLeaderboard,
+    setCurrentDay, setCurrentPhase, resetSimulation, resetForReplay
+  } = useStore();
+
   const [activeNav, setActiveNav] = useState("Dashboard");
+  const [wsStatus, setWsStatus] = useState("Connecting...");
+  const isReplayModeRef = useRef(false);
 
   useEffect(() => {
     boot();
     const ws = connectWS((data) => {
+      if (isReplayModeRef.current) return;
       if (data.type === "state_update") {
         const payload = data.payload;
+        setCurrentDay(payload.day);
+        setCurrentPhase(payload.phase);
         setState(payload.state);
         setEpisodeId(payload.episode_id ?? null);
         setDecisions((d) =>
-          [{ day: payload.day, phase: payload.phase, action: payload.action }, ...d].slice(0, 30),
+          [{ day: payload.day, phase: payload.phase, action: payload.action, reason: getReason(payload.action, payload.state, payload.phase) }, ...d].slice(0, 30),
         );
         setHistory((h) =>
           [
             ...h,
-            { step: h.length + 1, revenue: payload.state.revenue, cash: payload.state.cash_balance },
+            { step: h.length + 1, revenue: payload.state.revenue, cash: payload.state.cash_balance, burn: payload.state.burn_rate },
           ].slice(-MAX_POINTS),
         );
         setMoraleHistory((m) =>
@@ -50,22 +71,27 @@ export default function App() {
         setEvents((e) => [data.payload.event, ...e].slice(0, 30));
       }
       if (data.type === "reward_update") {
-        setRewards((r) => [...r, { step: r.length + 1, reward: data.payload.reward }].slice(-MAX_POINTS));
+        setRewards((r) => {
+          const prevCumulative = r.length > 0 ? r[r.length - 1].cumulative_reward : 0;
+          return [...r, { step: r.length + 1, reward: data.payload.reward, cumulative_reward: prevCumulative + data.payload.reward }].slice(-MAX_POINTS);
+        });
       }
       if (data.type === "episode_done") {
         setDone(true);
         loadLeaderboard();
       }
-    });
+    }, setWsStatus);
     return () => ws.close();
   }, []);
 
   async function boot() {
     try {
-      const current = await api.getState();
-      setState(current.data.state);
-      setEpisodeId(current.data.episode_id);
-      setMoraleHistory([{ name: "S1", mood: current.data.state.employee_morale }]);
+      if (useStore.getState().state === null) {
+        const current = await api.getState();
+        setState(current.data.state);
+        setEpisodeId(current.data.episode_id);
+        setMoraleHistory([{ name: "S1", mood: current.data.state.employee_morale }]);
+      }
       loadLeaderboard();
     } catch (_error) {
       // Keep app responsive even if one boot call fails temporarily.
@@ -78,45 +104,44 @@ export default function App() {
   }
 
   async function onReset() {
+    isReplayModeRef.current = false;
     const resetRes = await api.reset(mode);
-    setState(resetRes.data.state);
-    setEpisodeId(resetRes.data.episode_id);
-    setEvents([]);
-    setDecisions([]);
-    setRewards([]);
-    setHistory([]);
-    setMoraleHistory([{ name: "S1", mood: resetRes.data.state.employee_morale }]);
-    setDone(false);
+    resetSimulation(resetRes.data.state, resetRes.data.episode_id);
     await loadLeaderboard();
   }
 
   async function onReplay(id) {
+    isReplayModeRef.current = true;
     const replayRes = await api.replay(id);
     const steps = replayRes.data || [];
-    setEvents([]);
-    setDecisions([]);
-    setRewards([]);
-    setHistory([]);
-    setMoraleHistory([]);
-    setDone(false);
+    resetForReplay();
 
     for (let i = 0; i < steps.length; i += 1) {
       const step = steps[i];
       // Keep replay smooth and readable for demo mode.
       await new Promise((resolve) => setTimeout(resolve, 200));
+      if (!isReplayModeRef.current) break; // abort if user reset
       setState(step.state);
-      setDecisions((d) => [{ day: step.day, phase: step.phase, action: step.action }, ...d].slice(0, 30));
-      setRewards((r) => [...r, { step: r.length + 1, reward: step.reward }].slice(-MAX_POINTS));
+      setCurrentDay(step.day);
+      setCurrentPhase(step.phase);
+      setDecisions((d) => [{ day: step.day, phase: step.phase, action: step.action, reason: getReason(step.action, step.state, step.phase) }, ...d].slice(0, 30));
+      setRewards((r) => {
+        const prevCumulative = r.length > 0 ? r[r.length - 1].cumulative_reward : 0;
+        return [...r, { step: r.length + 1, reward: step.reward, cumulative_reward: prevCumulative + step.reward }].slice(-MAX_POINTS);
+      });
       setHistory((h) =>
-        [...h, { step: h.length + 1, revenue: step.state.revenue, cash: step.state.cash_balance }].slice(
+        [...h, { step: h.length + 1, revenue: step.state.revenue, cash: step.state.cash_balance, burn: step.state.burn_rate }].slice(
           -MAX_POINTS,
         ),
       );
       setMoraleHistory((m) =>
         [...m, { name: `S${step.day}`, mood: step.state.employee_morale }].slice(-10),
       );
-      if (step.event?.name) {
-        setEvents((e) => [step.event.name, ...e].slice(0, 30));
+      if (step.event) {
+        const ev = typeof step.event === 'string' ? { name: step.event, severity: 'info' } : step.event;
+        if (ev.name) {
+          setEvents((e) => [ev, ...e].slice(0, 30));
+        }
       }
     }
     setDone(true);
@@ -201,9 +226,9 @@ export default function App() {
             ))}
           </nav>
 
-          <div className="mt-auto space-y-2 rounded-xl border border-emerald-400/20 bg-emerald-500/5 p-3 text-xs">
-            <div className="text-emerald-300">System Status</div>
-            <div className="font-medium text-emerald-200">Online</div>
+          <div className={`mt-auto space-y-2 rounded-xl border p-3 text-xs ${wsStatus === 'Online' ? 'border-emerald-400/20 bg-emerald-500/5' : 'border-amber-400/20 bg-amber-500/5'}`}>
+            <div className={wsStatus === 'Online' ? 'text-emerald-300' : 'text-amber-300'}>System Status</div>
+            <div className={`font-medium ${wsStatus === 'Online' ? 'text-emerald-200' : 'text-amber-200'}`}>{wsStatus}</div>
           </div>
         </aside>
 
@@ -211,9 +236,16 @@ export default function App() {
           <header id="section-dashboard" className="glass-card">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="rounded-xl border border-violet-400/30 bg-violet-500/10 px-4 py-2 text-sm text-violet-100">
-                Day 45 &middot; Afternoon Phase
+                {isReplayModeRef.current ? "[REPLAY] " : ""}Day {currentDay} &middot; {currentPhase} Phase
               </div>
               <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1 rounded bg-slate-800/50 p-1">
+                  <button className="rounded px-2 py-1 text-xs text-slate-300 hover:bg-slate-700 hover:text-white" onClick={() => api.pause()}>⏸ Pause</button>
+                  <button className="rounded px-2 py-1 text-xs text-slate-300 hover:bg-slate-700 hover:text-white" onClick={() => api.resume()}>▶ Resume</button>
+                  <button className="rounded px-2 py-1 text-xs text-slate-300 hover:bg-slate-700 hover:text-white" onClick={() => api.speed(1.0)}>1x</button>
+                  <button className="rounded px-2 py-1 text-xs text-slate-300 hover:bg-slate-700 hover:text-white" onClick={() => api.speed(2.0)}>2x</button>
+                  <button className="rounded px-2 py-1 text-xs text-slate-300 hover:bg-slate-700 hover:text-white" onClick={() => api.speed(5.0)}>5x</button>
+                </div>
                 <select
                   className="top-button"
                   value={mode}

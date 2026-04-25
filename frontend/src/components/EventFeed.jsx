@@ -5,10 +5,12 @@ export default function EventFeed({ events }) {
   const severityData = useMemo(() => {
     const counts = { Critical: 0, High: 0, Medium: 0 };
     events.forEach((event) => {
-      const text = String(event || "").toLowerCase();
-      if (text.includes("outage") || text.includes("spike") || text.includes("churn")) {
+      const severity = typeof event === 'object' && event.severity ? event.severity.toLowerCase() : 'info';
+      const text = typeof event === 'object' ? String(event.name || "").toLowerCase() : String(event || "").toLowerCase();
+      
+      if (severity === 'critical' || text.includes("outage") || text.includes("spike") || text.includes("churn")) {
         counts.Critical += 1;
-      } else if (text.includes("dropped") || text.includes("volatility") || text.includes("limit")) {
+      } else if (severity === 'high' || text.includes("dropped") || text.includes("volatility") || text.includes("limit")) {
         counts.High += 1;
       } else {
         counts.Medium += 1;
@@ -42,11 +44,18 @@ export default function EventFeed({ events }) {
         </div>
         <div className="overflow-auto">
           <ul className="space-y-1 text-sm">
-            {events.map((event, index) => (
-              <li key={index} className="rounded-lg border border-rose-400/20 bg-rose-400/5 px-2 py-1 text-rose-200">
-                {event}
-              </li>
-            ))}
+            {events.map((event, index) => {
+              const name = typeof event === 'object' ? event.name : event;
+              const severity = typeof event === 'object' ? event.severity : 'info';
+              const colorClass = severity === 'critical' ? 'border-rose-400/20 bg-rose-400/5 text-rose-200' :
+                                 severity === 'high' ? 'border-amber-400/20 bg-amber-400/5 text-amber-200' :
+                                 'border-cyan-400/20 bg-cyan-400/5 text-cyan-200';
+              return (
+                <li key={index} className={`rounded-lg border px-2 py-1 ${colorClass}`}>
+                  {name}
+                </li>
+              );
+            })}
           </ul>
         </div>
       </div>
