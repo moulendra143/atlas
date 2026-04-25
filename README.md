@@ -14,15 +14,15 @@ pinned: false
 > **3. Results:** +39% improvement over baseline heuristic via TRL SFT, further optimized via GRPO reinforcement learning.
 > **4. Why it matters:** It proves LLMs can manage dynamic, multi-dimensional resource challenges beyond simple grid worlds or static API calling.
 
-> **OpenEnv Hackathon 2026** — Theme: Multi-Agent Interactions + Instruction Following + Self-Improving Agents
+> **OpenEnv Hackathon 2026** -- Theme: Multi-Agent Interactions + Instruction Following + Self-Improving Agents
 
 ATLAS is a real-time startup simulation where an **AI CEO** coordinates multiple autonomous department agents over a **90-day quarter**. The environment is fully OpenEnv-compliant, Gym-compatible, and designed for a two-stage learning pipeline:
 - **TRL SFT** warm-start from environment-generated trajectories (with optional **Unsloth** acceleration)
 - **TRL GRPO / PPO** optimization using real environment rewards (action -> verifiable reward -> policy improvement)
 
-🔗 **Live Space:** https://huggingface.co/spaces/nelluru/ATLAS  
-🔗 **Live App:** https://nelluru-atlas.hf.space  
-🎬 **Demo Video:** https://youtu.be/1aWDCkJ3Uyc
+? **Live Space:** https://huggingface.co/spaces/nelluru/ATLAS  
+? **Live App:** https://nelluru-atlas.hf.space  
+? **Demo Video:** https://youtu.be/1aWDCkJ3Uyc
 
 ---
 
@@ -40,9 +40,9 @@ ATLAS trains an LLM-based CEO agent to navigate hiring, product launches, financ
 ## Environment
 
 - **90-day simulation** with morning / afternoon / evening phases (270 steps per episode)
-- **CEO action space** — 13 discrete actions: hire, fire, launch product, run ads, raise funding, fix crises, etc.
-- **NPC department agents** — Engineering, Sales, HR, Finance, Customer Success — react to decisions
-- **Dynamic events** — server outages, market crashes, viral growth, employee resignations
+- **CEO action space** -- 13 discrete actions: hire, fire, launch product, run ads, raise funding, fix crises, etc.
+- **NPC department agents** -- Engineering, Sales, HR, Finance, Customer Success -- react to decisions
+- **Dynamic events** -- server outages, market crashes, viral growth, employee resignations
 - **Dense reward** every step + large terminal reward for survival/growth
 
 ## Agent Capabilities
@@ -67,16 +67,26 @@ Each episode requires the agent to repeatedly perform structured decision tasks:
 
 ### Reward Signal
 
-```
-reward = 0.00005 × revenue
-       + 0.02 × employee_morale
-       + 0.02 × customer_satisfaction
-       + 0.01 × investor_trust
-       − 0.00004 × burn_rate
-       − 0.02 × crises
-```
+ATLAS uses **8 independent reward components** per step (multi-objective, anti-hacking):
+
+| Component | Formula | Direction |
+|---|---|---|
+| revenue_reward | 0.00005 x revenue | + |
+| morale_reward | 0.02 x employee_morale | + |
+| customer_reward | 0.02 x customer_satisfaction | + |
+| trust_reward | 0.01 x investor_trust | + |
+| burn_penalty | -0.00004 x burn_rate | - |
+| crisis_penalty | -0.02 x crises | - |
+| invalid_action_penalty | -8.0 (if action out of range) | - |
+| **mandate_compliance** | **+1.0 or -1.0** | + or - |
+
+The `mandate_compliance` signal gives **+1.0** when the chosen action aligns with the active Board Mandate
+(e.g., hiring under "Growth", cost-cutting under "Cost Efficiency") and **-1.0** when it directly opposes it.
+This is the **key anti-reward-hacking mechanism** -- an agent cannot spam a single action to game one metric
+while violating the strategic mandate without incurring a direct penalty.
 
 ---
+
 
 ## Reward Improvement Evidence
 
@@ -84,7 +94,7 @@ reward = 0.00005 × revenue
 
 ![Reward Curve: Before vs After](training/reward_curve.png)
 
-*X-axis: Episode number | Y-axis: Total cumulative episode reward. Random agent avg: ~4,200 | Heuristic (trained-like) avg: ~5,900 — **+39% improvement***
+*X-axis: Episode number | Y-axis: Total cumulative episode reward. Random agent avg: ~4,200 | Heuristic (trained-like) avg: ~5,900 -- **+39% improvement***
 
 ### TRL SFT: Training Evidence (before-vs-after)
 
@@ -97,21 +107,21 @@ reward = 0.00005 × revenue
 *X-axis: Training step | Y-axis: SFT cross-entropy loss. Loss converges steadily over 30 steps, confirming the model learned to imitate environment-optimal actions.*
 
 ### TRL GRPO / PPO RL: Verifiable Reward-Driven Improvement
-The GRPO/PPO RL loop connects the trained LLM directly to the **live environment** (not a static dataset).
-
-Run \python training/trl_ppo_rl.py\ (16 episodes, curriculum: growth→startup→crisis):
-
-![PPO Reward Curve](training/trl_ppo_reward_curve.png)
-*X-axis: Episode | Y-axis: Total cumulative reward. Blue = per-episode, Orange = rolling avg, Gray = baseline.*
-
-> **8 Independent Reward Signals (Anti-Hacking):** Revenue, Morale, CSAT, Trust, Burn(-), Crisis(-), Invalid(-8), **Mandate Compliance(±1.0)**. Mandate bonus stops single-metric reward hacking.
-
+The GRPO/PPO RL loop connects the trained LLM directly to the **live environment** (not a static dataset).
+
+Run `python training/trl_ppo_rl.py` (16 episodes, curriculum: growth->startup->crisis):
+
+![PPO Reward Curve](training/trl_ppo_reward_curve.png)
+*X-axis: Episode | Y-axis: Total cumulative reward. Blue = per-episode, Orange = rolling avg, Gray = baseline.*
+
+> **8 Independent Reward Signals (Anti-Hacking):** Revenue, Morale, CSAT, Trust, Burn(-), Crisis(-), Invalid(-8), **Mandate Compliance(+/-1.0)**. Mandate bonus stops single-metric reward hacking.
+
 ---
 
 ## Self-Improvement Strategy
 
 ATLAS is designed for recursive capability growth:
-1. **Adaptive Curricula**: The environment provides scenario presets (`startup` → `growth` → `crisis`). Agents follow an adaptive curriculum, training on stable environments before tackling high-volatility "black swan" events.
+1. **Adaptive Curricula**: The environment provides scenario presets (`startup` -> `growth` -> `crisis`). Agents follow an adaptive curriculum, training on stable environments before tackling high-volatility "black swan" events.
 2. **Heuristic Distillation (Expert-in-the-loop)**: The environment includes a heuristic "Expert" used to generate initial high-quality trajectories. These are distilled into the agent via TRL SFT to establish a strong baseline.
 3. **Verifiable Optimization (TRL GRPO)**: The model is then optimized online inside the environment (`training/trl_grpo_rl.py`) using dense verifiable rewards and penalties from each step, taking advantage of the latest RLVR capabilities.
 4. **Trajectory Filtering**: Using the reward signal, the system can filter self-play trajectories, keeping only those that exceed the reward mean of the previous iteration for the next round.
@@ -120,15 +130,15 @@ ATLAS is designed for recursive capability growth:
 
 | Requirement | Status | Artifact |
 |---|---|---|
-| OpenEnv (latest release) `0.2.3` | ✅ | `requirements.txt`, `openenv.yaml` |
-| OpenEnv manifest | ✅ | `openenv.yaml` (repo root) |
-| TRL SFT training script in Colab | ✅ | `training/TRL_Colab_Minimal.ipynb`, `training/trl_colab_minimal.py` |
-| TRL RL trainer (GRPO/PPO) | ✅ | `training/trl_grpo_rl.py`, `training/trl_ppo_rl.py` |
-| Unsloth acceleration integrated | ✅ | `training/trl_colab_minimal.py`, `requirements.txt` |
-| Training Evidence (plots) | ✅ | `reward_curve.png`, `trl_reward_curve.png`, `trl_loss_curve.png` |
-| Mini-video < 2 min | ✅ | https://youtu.be/1aWDCkJ3Uyc |
-| Hosted on Hugging Face Spaces | ✅ | https://huggingface.co/spaces/nelluru/ATLAS |
-| README with all links + Strategy | ✅ | This file |
+| OpenEnv (latest release) `0.2.3` | ? | `requirements.txt`, `openenv.yaml` |
+| OpenEnv manifest | ? | `openenv.yaml` (repo root) |
+| TRL SFT training script in Colab | ? | `training/TRL_Colab_Minimal.ipynb`, `training/trl_colab_minimal.py` |
+| TRL RL trainer (GRPO/PPO) | ? | `training/trl_grpo_rl.py`, `training/trl_ppo_rl.py` |
+| Unsloth acceleration integrated | ? | `training/trl_colab_minimal.py`, `requirements.txt` |
+| Training Evidence (plots) | ? | `reward_curve.png`, `trl_reward_curve.png`, `trl_loss_curve.png`, `trl_ppo_reward_curve.png` |
+| Mini-video < 2 min | ? | https://youtu.be/1aWDCkJ3Uyc |
+| Hosted on Hugging Face Spaces | ? | https://huggingface.co/spaces/nelluru/ATLAS |
+| README with all links + Strategy | ? | This file |
 
 ---
 
@@ -149,9 +159,9 @@ This project was built to **100% satisfy** the advanced RL guidelines outlined i
 - `AtlasOpenEnv` in `env/startup_env.py` subclasses `openenv.core.Environment`
 - Exposes standard Gym API: `reset()`, `step(action)`, `render()`
 - Backend endpoints at both `/api/*` and `/*` (no-prefix) for OpenEnv clients:
-  - `POST /reset` — start a new episode
-  - `POST /step` — take an action, get obs + reward
-  - `GET /state` — current environment state
+  - `POST /reset` -- start a new episode
+  - `POST /step` -- take an action, get obs + reward
+  - `GET /state` -- current environment state
 
 Environment design (first-class artifact):
 1. **Observation**: numeric state vector (cash, revenue, burn, morale, progress, CSAT, trust, tasks, crises, trend)
@@ -185,7 +195,7 @@ Open [`training/TRL_Colab_Minimal.ipynb`](training/TRL_Colab_Minimal.ipynb) in G
 ```
 
 Stage 1 (`trl_colab_minimal.py`):
-1. Generates `(state → action)` pairs from the live environment
+1. Generates `(state -> action)` pairs from the live environment
 2. Fine-tunes `distilgpt2` with TRL `SFTTrainer` (optionally loaded via Unsloth)
 3. Evaluates reward **before vs after** training
 4. Saves `training/trl_reward_curve.png` and `training/trl_loss_curve.png`
@@ -286,24 +296,24 @@ The dashboard will now show the AI making decisions in real-time!
 
 ```
 atlas/
-├── backend/          # FastAPI app + OpenEnv endpoints
-│   ├── main.py       # /reset /step /state + /api/* mirrors
-│   └── openenv_models.py  # AtlasAction + AtlasObservation schemas
-├── env/
-│   └── startup_env.py     # AtlasStartupEnv (Gym) + AtlasOpenEnv adapter
-├── training/
-│   ├── train.py           # Random vs heuristic reward curve
-│   ├── trl_colab_minimal.py  # TRL SFT before/after script
-│   ├── trl_grpo_rl.py     # TRL GRPO verifiable reinforcement-learning loop
-│   ├── trl_ppo_rl.py      # TRL PPO reinforcement-learning loop
-│   ├── TRL_Colab_Minimal.ipynb
-│   ├── check_openenv.py   # OpenEnv adapter smoke-test
-│   ├── reward_curve.png   # Plot: random vs heuristic
-│   ├── trl_reward_curve.png  # Plot: TRL before vs after
-│   └── trl_loss_curve.png    # Plot: SFT training loss
-├── openenv.yaml      # OpenEnv manifest (table stakes)
-├── Dockerfile
-└── requirements.txt
+??? backend/          # FastAPI app + OpenEnv endpoints
+?   ??? main.py       # /reset /step /state + /api/* mirrors
+?   ??? openenv_models.py  # AtlasAction + AtlasObservation schemas
+??? env/
+?   ??? startup_env.py     # AtlasStartupEnv (Gym) + AtlasOpenEnv adapter
+??? training/
+?   ??? train.py           # Random vs heuristic reward curve
+?   ??? trl_colab_minimal.py  # TRL SFT before/after script
+?   ??? trl_grpo_rl.py     # TRL GRPO verifiable reinforcement-learning loop
+?   ??? trl_ppo_rl.py      # TRL PPO reinforcement-learning loop
+?   ??? TRL_Colab_Minimal.ipynb
+?   ??? check_openenv.py   # OpenEnv adapter smoke-test
+?   ??? reward_curve.png   # Plot: random vs heuristic
+?   ??? trl_reward_curve.png  # Plot: TRL before vs after
+?   ??? trl_loss_curve.png    # Plot: SFT training loss
+??? openenv.yaml      # OpenEnv manifest (table stakes)
+??? Dockerfile
+??? requirements.txt
 ```
 
 ---
@@ -336,20 +346,20 @@ atlas/
 
 ## 3-Minute Demo Flow
 
-1. Open dashboard → pick a scenario preset (Startup / Crisis / Growth)
+1. Open dashboard -> pick a scenario preset (Startup / Crisis / Growth)
 2. Show live CEO decisions, market events, department reactions
 3. Highlight reward chart climbing as smart decisions are made
 4. Show leaderboard and replay a previous quarter
-5. Run `python training/train.py` → show `reward_curve.png` improvement
+5. Run `python training/train.py` -> show `reward_curve.png` improvement
 6. Run `python training/trl_ppo_rl.py` to show reward-driven RL policy improvement
  
 ## Real-Time Control API
 
 The simulation now supports pause, resume, and speed adjustment via the following endpoints:
 
-- `POST /pause` – Pauses the simulation loop.
-- `POST /resume` – Resumes a paused simulation.
-- `POST /speed?val=<factor>` – Sets simulation speed multiplier (0.1× … 5×). Default is `1.0`.
+- `POST /pause` - Pauses the simulation loop.
+- `POST /resume` - Resumes a paused simulation.
+- `POST /speed?val=<factor>` - Sets simulation speed multiplier (0.1x ? 5x). Default is `1.0`.
 
 These can be triggered from the dashboard UI (buttons added to the top bar) or via curl:
 
@@ -374,17 +384,17 @@ This project is licensed under the Apache License 2.0. See the `LICENSE` file fo
 
 ## Acknowledgements
 
-- **OpenEnv** – for providing a standardized RL environment interface.
-- **TRL** – for simplifying SFT and PPO training pipelines.
-- **Unsloth** – for fast, low‑memory finetuning.
+- **OpenEnv** - for providing a standardized RL environment interface.
+- **TRL** - for simplifying SFT and PPO training pipelines.
+- **Unsloth** - for fast, low?memory finetuning.
 - The hackathon judges and community for valuable feedback.
 
 ## Troubleshooting
 
 - **WebSocket connection fails**: Ensure the backend is running on port 8000 and that no firewall blocks the connection.
 - **Simulation runs too fast/slow**: Use the speed controls in the UI or adjust the `sim_speed` value via the `/speed` endpoint.
-- **Missing environment variables**: Verify that your API keys (e.g., `GEMINI_API_KEY`) are set in the Hugging Face Space under *Settings → Variables and Secrets*.
-- **Training script errors**: Check that `requirements.txt` dependencies are installed and that you are using Python 3.11+. Re‑run `pip install -r requirements.txt`.
+- **Missing environment variables**: Verify that your API keys (e.g., `GEMINI_API_KEY`) are set in the Hugging Face Space under *Settings -> Variables and Secrets*.
+- **Training script errors**: Check that `requirements.txt` dependencies are installed and that you are using Python 3.11+. Re?run `pip install -r requirements.txt`.
 
 For any other issues, open an issue on GitHub or contact the maintainers.
 ## Contact
@@ -394,10 +404,10 @@ For any other issues, open an issue on GitHub or contact the maintainers.
 
 ## Future Work
 
-- **Multi‑CEO Collaboration**: Enable multiple AI CEOs to coordinate across subsidiaries.
+- **Multi?CEO Collaboration**: Enable multiple AI CEOs to coordinate across subsidiaries.
 - **Extended Curriculum**: Add more challenging presets (e.g., global expansion, regulatory crises).
-- **Explainability Dashboard**: Visualize per‑step reward breakdowns and decision rationales for judges.
-- **Integration with Real‑World Datasets**: Incorporate market data APIs to ground simulations in actual economic trends.
+- **Explainability Dashboard**: Visualize per?step reward breakdowns and decision rationales for judges.
+- **Integration with Real?World Datasets**: Incorporate market data APIs to ground simulations in actual economic trends.
 
 ---
 **Thank you for exploring ATLAS!**
@@ -425,4 +435,4 @@ If you use ATLAS in your research, please cite:
 
 ---
 
-© 2026 Jaswanth Arjun. All rights reserved. Licensed under Apache 2.0.
+(c) 2026 Jaswanth Arjun. All rights reserved. Licensed under Apache 2.0.
