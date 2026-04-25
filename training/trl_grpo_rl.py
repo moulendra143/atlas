@@ -26,6 +26,43 @@ except ImportError:
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 ACTION_TOKENS = [f"<a{i}>" for i in range(len(ACTIONS))]
+ACTION_NAME_TO_IDX = {name.lower(): idx for idx, name in enumerate(ACTIONS)}
+
+
+def _parse_action_from_completion(completion) -> int | None:
+    """Extract an action index from noisy GRPO completions.
+
+    Accepts any of:
+    - exact action token, e.g. <a3>
+    - action name, e.g. assign_engineering_task
+    - a numeric index, e.g. 3
+    """
+    if isinstance(completion, (list, tuple)):
+        text = " ".join(str(part) for part in completion if part is not None).strip().lower()
+    else:
+        text = str(completion).strip().lower()
+    if not text:
+        return None
+
+    # Direct token match first.
+    for idx, token in enumerate(ACTION_TOKENS):
+        if token.lower() in text:
+            return idx
+
+    # Action-name match next.
+    for name, idx in ACTION_NAME_TO_IDX.items():
+        if name in text:
+            return idx
+
+    # Fall back to a standalone integer if present.
+    for raw in text.replace(",", " ").replace(";", " ").split():
+        cleaned = raw.strip(".:()[]{}<>\"'")
+        if cleaned.isdigit():
+            idx = int(cleaned)
+            if 0 <= idx < len(ACTIONS):
+                return idx
+
+    return None
 
 @dataclass
 class RunConfig:
@@ -41,23 +78,17 @@ def _format_prompt(obs: np.ndarray, mandate: str) -> str:
     return (
         "You are an AI CEO in a startup simulation.\n"
         f"Board Mandate: {mandate}\n\n"
-        "Choose exactly one action token from the allowed list.\n"
-        "Valid tokens:\n"
-        + "\n".join([f"- {token} = {name}" for token, name in zip(ACTION_TOKENS, ACTIONS)])
+        "Choose exactly one action name from the allowed list.\n"
+        "Valid actions:\n"
+        + "\n".join([f"- {idx}: {name}" for idx, name in enumerate(ACTIONS)])
         + "\n\n"
         "Current state:\n"
         f"cash={cash:.0f}, revenue={revenue:.0f}, burn={burn_rate:.0f}, "
         f"morale={morale:.1f}, progress={progress:.1f}, "
         f"csat={csat:.1f}, trust={investor_trust:.1f}, "
         f"tasks={pending_tasks:.1f}, crises={crises:.1f}, trend={market_trend:.1f}\n\n"
-        "Action token:"
+        "Action ID (0-12): "
     )
-
-def _build_token_maps(tokenizer: AutoTokenizer) -> Tuple[List[int], Dict[int, int]]:
-    tokenizer.add_special_tokens({"additional_special_tokens": ACTION_TOKENS})
-    token_ids = tokenizer.convert_tokens_to_ids(ACTION_TOKENS)
-    id_to_action = {tid: idx for idx, tid in enumerate(token_ids)}
-    return token_ids, id_to_action
 
 def verify_business_health(prompts, completions, obs_list=None, **kwargs):
     """
@@ -83,21 +114,20 @@ def verify_business_health(prompts, completions, obs_list=None, **kwargs):
             for k, v in zip(state_keys, actual_obs):
                 env.core.state[k] = float(v)
 
-        action_text = str(completion[0] if isinstance(completion, list) else completion).lower()
-        
-        action_idx = -1
-        for idx, token in enumerate(ACTION_TOKENS):
-            if token.lower() in action_text:
-                action_idx = idx
-                break
-                
-        if action_idx != -1:
-            _, reward, _, _, info = env.core.step(action_idx)
-            # Multi-objective signal: include mandate compliance in the reward breakdown
-            mandate_bonus = info.get("reward_breakdown", {}).get("mandate_compliance", 0.0)
-            rewards.append(float(reward) + mandate_bonus)
+        action_idx = _parse_action_from_completion(completion)
+
+        # To prevent reward collapse (-8.0 flat) and zero gradients,
+        # fallback to a random action but apply a formatting penalty.
+        if action_idx is None:
+            action_idx = random.randint(0, len(ACTIONS) - 1)
+            format_penalty = -2.0
         else:
-            rewards.append(-8.0)
+            format_penalty = 0.0
+
+        _, reward, _, _, info = env.core.step(action_idx)
+        # Multi-objective signal: include mandate compliance in the reward breakdown
+        mandate_bonus = info.get("reward_breakdown", {}).get("mandate_compliance", 0.0)
+        rewards.append(float(reward) + mandate_bonus + format_penalty)
 
     return rewards
 
@@ -116,9 +146,6 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(cfg.model_name)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
-        
-    _build_token_maps(tokenizer)
-    model.resize_token_embeddings(len(tokenizer))
 
     grpo_config = GRPOConfig(
         output_dir=cfg.output_dir,
