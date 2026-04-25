@@ -27,7 +27,7 @@ export default function EventFeed({ events }) {
     <div className="glass-card h-80">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="panel-title mb-0">Crisis Alerts</h2>
-        <span className="text-xs text-rose-300">Live Feed</span>
+        <span className="text-xs text-rose-300 animate-pulse font-medium">.Live Feed</span>
       </div>
       <div className="grid h-[90%] grid-cols-[155px_1fr] gap-3">
         <div className="rounded-xl border border-slate-700/70 bg-slate-950/50 p-2">
@@ -38,7 +38,16 @@ export default function EventFeed({ events }) {
                   <Cell key={entry.name} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: 'rgba(15, 23, 42, 0.95)', 
+                  borderColor: '#334155', 
+                  borderRadius: '8px',
+                  color: '#f8fafc',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5)'
+                }} 
+                itemStyle={{ color: '#e2e8f0', fontWeight: 500 }}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>
