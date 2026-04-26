@@ -123,6 +123,7 @@ class AtlasStartupEnv(gym.Env):
                 "trust_reward": 0.0,
                 "burn_penalty": 0.0,
                 "crisis_penalty": 0.0,
+                "csat_penalty": 0.0,
             }
         else:
             action_reward, action_reward_breakdown = self._apply_action(action_name)
@@ -191,6 +192,7 @@ class AtlasStartupEnv(gym.Env):
             "trust_reward": 0.0,
             "burn_penalty": 0.0,
             "crisis_penalty": 0.0,
+            "csat_penalty": 0.0,
             "mandate_compliance": 0.0,
         }
         if action == "hire_employee":
@@ -237,10 +239,22 @@ class AtlasStartupEnv(gym.Env):
 
         reward_breakdown["revenue_reward"] = 0.00005 * self.state["revenue"]
         reward_breakdown["morale_reward"] = 0.02 * self.state["employee_morale"]
-        reward_breakdown["customer_reward"] = 0.02 * self.state["customer_satisfaction"]
+        
+        # FIX: Significantly increased the weight of customer satisfaction
+        # This will force the agent to prioritize customer satisfaction to maximize its reward
+        reward_breakdown["customer_reward"] = 0.1 * self.state["customer_satisfaction"] 
+        
         reward_breakdown["trust_reward"] = 0.01 * self.state["investor_trust"]
         reward_breakdown["burn_penalty"] = -0.00004 * self.state["burn_rate"]
         reward_breakdown["crisis_penalty"] = -0.02 * self.state["crises"]
+        
+        # FIX: Added a heavy penalty if customer satisfaction drops too low (< 60)
+        # This acts as a 'guardrail' to ensure the agent doesn't sacrifice CSAT for other metrics.
+        if self.state["customer_satisfaction"] < 60.0:
+            reward_breakdown["csat_penalty"] = -5.0
+        else:
+            reward_breakdown["csat_penalty"] = 0.0
+
         # Mandate compliance: process-aware bonus/penalty for instruction following.
         reward_breakdown["mandate_compliance"] = self._mandate_compliance_bonus(action)
         reward_breakdown["business_reward"] = (
@@ -250,6 +264,7 @@ class AtlasStartupEnv(gym.Env):
             + reward_breakdown["trust_reward"]
             + reward_breakdown["burn_penalty"]
             + reward_breakdown["crisis_penalty"]
+            + reward_breakdown["csat_penalty"]
             + reward_breakdown["mandate_compliance"]
         )
         reward_breakdown["action_reward"] += reward_breakdown["business_reward"]

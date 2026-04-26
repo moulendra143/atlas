@@ -283,7 +283,7 @@ ATLAS is a proof of concept that LLMs can be more than chatbots. They can be pla
 |---|---|
 | Live Demo | [https://nelluru-atlas.hf.space](https://nelluru-atlas.hf.space) |
 | Hugging Face Space | [https://huggingface.co/spaces/nelluru/ATLAS](https://huggingface.co/spaces/nelluru/ATLAS) |
-| Demo Video | [https://youtu.be/6drWDtNvJNM](hhttps://youtu.be/6drWDtNvJNM) |
+| Demo Video | [https://youtu.be/hDVsQo99-JU](https://youtu.be/hDVsQo99-JU) |
 | GitHub Repository | [https://github.com/Jaswanth-arjun/atlas](https://github.com/Jaswanth-arjun/atlas) |
 | Google Colab | [Training Notebook](https://colab.research.google.com/drive/1zGZNoiwAomnLb2gpLURKu7ELrXdJv8qi) |
 | Presentation | [https://docs.google.com/presentation/d/1ijZkJZTXke_qHiKfI9zOVI9Z6Wdx9p04/edit?usp=sharing&ouid=114255110168767644589&rtpof=true&sd=true](https://docs.google.com/presentation/d/1ijZkJZTXke_qHiKfI9zOVI9Z6Wdx9p04/edit?usp=sharing&ouid=114255110168767644589&rtpof=true&sd=true) |
