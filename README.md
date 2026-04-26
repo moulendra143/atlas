@@ -120,9 +120,29 @@ Run `python training/trl_ppo_rl.py` (16 episodes, curriculum: growth->startup->c
 
 To provide verifiable proof that the LLM weights were updated via RL, we have provided two key artifacts:
 
-1. **[Training Behavioral Logs](TRAINING_LOGS.md)**: A side-by-side readable log comparing the AI's exact thoughts and actions in Episode 1 (Untrained, Bankrupt on Day 15) vs Episode 16 (Trained, Survived 90 Days).
+1. **[Training Behavioral Logs](TRAINING_LOGS.md)**: A side-by-side readable log comparing the AI's exact thoughts and actions in Episode 1 (Untrained, Bankrupt on Day 15) vs Episode 16 (Trained, Survived 90 Days). 
+   *💡 **Note to Judges:** Our training script automatically appends episode summaries (rewards, steps survived) to this log file in real-time during training.*
 2. **Trained Model Weights**: The final fine-tuned LoRA weights (`adapter_model.safetensors`) from our Unsloth/TRL pipeline are hosted on Hugging Face Hub. 
    - 🔗 **Weights Link:** [nelluru/atlas-ceo-distilgpt2](https://huggingface.co/nelluru/atlas-ceo-distilgpt2) *(Available for inference and evaluation)*.
+
+### 🧪 Run It Yourself (Auto-Logging Demo)
+
+Judges can easily verify the environment and auto-logging functionality by running a quick 2-episode test. As the script runs, it will dynamically append the training data directly to `TRAINING_LOGS.md`.
+
+**Syntax:**
+```bash
+ATLAS_RL_EPISODES="<num_episodes>" ATLAS_RL_MAX_STEPS="<num_steps>" python training/trl_ppo_rl.py
+```
+
+**Example Command (Fast 2-Episode Test):**
+```bash
+# Windows (PowerShell):
+$env:ATLAS_RL_EPISODES="2"; $env:ATLAS_RL_MAX_STEPS="10"; python training/trl_ppo_rl.py
+
+# Linux / Mac / Colab:
+ATLAS_RL_EPISODES=2 ATLAS_RL_MAX_STEPS=10 python training/trl_ppo_rl.py
+```
+*After the script finishes, open `TRAINING_LOGS.md` to see your live test run appended at the bottom!*
 
 ---
 
