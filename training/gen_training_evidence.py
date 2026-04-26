@@ -54,7 +54,7 @@ episodes = list(range(1, N + 1))
 # ── Plot 1: Separate lines (existing format) ─────────────────────────────────
 fig, ax = plt.subplots(figsize=(10, 5))
 ax.plot(episodes, before, marker="o", color="crimson",  label="Untrained baseline (random policy)")
-ax.plot(episodes, after,  marker="s", color="steelblue", label="Trained policy (TRL SFT + GRPO)")
+ax.plot(episodes, after,  marker="s", color="steelblue", label="Expert heuristic policy (SFT warm-start)")
 ax.set_title("ATLAS: Episode Reward Before vs After RL Training", fontsize=13, fontweight="bold")
 ax.set_xlabel("Episode", fontsize=11)
 ax.set_ylabel("Total Reward (cumulative per episode)", fontsize=11)
@@ -99,7 +99,7 @@ axes[0].errorbar(["Untrained\n(Random)", "Trained\n(SFT+GRPO)"],
                  [np.mean(before), np.mean(after)],
                  yerr=[np.std(before), np.std(after)],
                  fmt="none", color="black", capsize=6, linewidth=2)
-axes[0].set_title("Mean Episode Reward: Baseline vs Trained", fontsize=12, fontweight="bold")
+axes[0].set_title("Mean Episode Reward: Random Baseline vs Expert Policy", fontsize=12, fontweight="bold")
 axes[0].set_ylabel("Mean Total Reward ± Std Dev", fontsize=11)
 axes[0].grid(True, axis="y", linestyle="--", alpha=0.5)
 improvement_pct = ((np.mean(after) - np.mean(before)) / abs(np.mean(before))) * 100
@@ -109,8 +109,8 @@ axes[0].text(0.5, 0.95,
              fontsize=13, fontweight="bold", color="steelblue")
 
 # Right: episode-by-episode on same axes
-axes[1].plot(episodes, before, marker="o", color="crimson",  alpha=0.7, label="Untrained (random)")
-axes[1].plot(episodes, after,  marker="s", color="steelblue", alpha=0.7, label="Trained (SFT+GRPO)")
+axes[1].plot(episodes, before, marker="o", color="crimson",  alpha=0.7, label="Untrained (random baseline)")
+axes[1].plot(episodes, after,  marker="s", color="steelblue", alpha=0.7, label="Expert heuristic (SFT warm-start)")
 axes[1].fill_between(episodes, before, after, alpha=0.1, color="steelblue", label="Improvement gap")
 axes[1].set_title("Episode-by-Episode Comparison", fontsize=12, fontweight="bold")
 axes[1].set_xlabel("Episode", fontsize=11)
