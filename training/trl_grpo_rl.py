@@ -53,7 +53,7 @@ _CURRENT_OBS_LIST: list = []
 
 @dataclass
 class RunConfig:
-    model_name: str = os.environ.get("ATLAS_RL_MODEL", "sshleifer/tiny-gpt2")
+    model_name: str = os.environ.get("ATLAS_RL_MODEL", "distilgpt2")
     episodes: int = int(os.environ.get("ATLAS_RL_EPISODES", "16"))
     max_steps_per_episode: int = int(os.environ.get("ATLAS_RL_MAX_STEPS", "90"))
     num_rollout_prompts: int = int(os.environ.get("ATLAS_GRPO_PROMPTS", "16"))
@@ -358,11 +358,13 @@ def main() -> None:
         output_dir=cfg.output_dir,
         learning_rate=1e-5,
         per_device_train_batch_size=1,
-        gradient_accumulation_steps=1,
+        gradient_accumulation_steps=4,
         max_prompt_length=256,
         max_completion_length=10,
-        num_generations=2,
-        generation_batch_size=2,
+        # num_generations=8: GRPO compares 8 sampled completions per prompt
+        # to compute group-relative advantages (standard GRPO practice)
+        num_generations=8,
+        generation_batch_size=8,
         num_train_epochs=1,
         bf16=False,
         fp16=False,

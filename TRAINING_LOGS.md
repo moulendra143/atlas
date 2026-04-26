@@ -1,6 +1,8 @@
 # 🧠 ATLAS: Training Logs & Behavior Proof
 
-This document provides readable, step-by-step evidence of the model's behavior **before** and **after** Reinforcement Learning (TRL GRPO). Mentors and judges can use this log to verify that the LLM learned meaningful strategic behaviors rather than just generating random outputs.
+This document provides readable, step-by-step evidence of the model's behavior **before** and **after** Reinforcement Learning (TRL SFT + GRPO).
+
+> **Transparency Note:** Episodes 1 and 16 below are reconstructed behavioral summaries based on inspection of untrained vs. trained policy outputs — written to illustrate the learning gap in human-readable form. All subsequent episodes (auto-logged entries below the horizontal rule) are appended automatically by `trl_grpo_rl.py` during real training runs.
 
 ---
 
