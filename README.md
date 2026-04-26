@@ -127,19 +127,21 @@ To provide verifiable proof that the LLM weights were updated via RL, we have pr
 
 ### 🧪 Run It Yourself (Auto-Logging Demo)
 
-Judges can easily verify the environment and auto-logging functionality by running a quick 2-episode test. As the script runs, it will dynamically append the training data directly to `TRAINING_LOGS.md`.
+Judges can verify the training pipeline and auto-logging functionality in two ways:
 
-**Syntax:**
-```bash
-ATLAS_RL_EPISODES="<num_episodes>" ATLAS_RL_MAX_STEPS="<num_steps>" python training/trl_ppo_rl.py
-```
+#### 1. Cloud Execution (Google Colab)
+You can view, inspect, and run our exact TRL/Unsloth training pipeline directly in the cloud.
+* 🔗 **Google Colab Notebook:** [ATLAS RL Training Pipeline](https://colab.research.google.com/drive/1zGZNoiwAomnLb2gpLURKu7ELrXdJv8qi)
 
-**Example Command (Fast 2-Episode Test):**
+#### 2. Local Execution (Fast 2-Episode Test)
+You can also verify the environment locally. As the script runs, it will dynamically append the training data directly to `TRAINING_LOGS.md`.
+
+**Example Command:**
 ```bash
 # Windows (PowerShell):
 $env:ATLAS_RL_EPISODES="2"; $env:ATLAS_RL_MAX_STEPS="10"; python training/trl_ppo_rl.py
 
-# Linux / Mac / Colab:
+# Linux / Mac:
 ATLAS_RL_EPISODES=2 ATLAS_RL_MAX_STEPS=10 python training/trl_ppo_rl.py
 ```
 *After the script finishes, open `TRAINING_LOGS.md` to see your live test run appended at the bottom!*
