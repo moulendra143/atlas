@@ -81,35 +81,49 @@ export default function TrainingEvidence() {
       </div>
 
       {/* Plots Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="border border-slate-700/50 rounded-lg bg-slate-900/80 p-3 flex flex-col items-center">
-          <div className="text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">PPO Reward Curve</div>
-          <img
-            src="/training_plots/trl_ppo_reward_curve.png"
-            alt="PPO Reward Curve"
-            className="w-full h-auto rounded object-contain bg-white"
-            style={{ maxHeight: "200px" }}
-          />
+      {activeTab === "baseline" ? (
+        <div className="grid grid-cols-1 gap-4">
+          <div className="border border-slate-700/50 rounded-lg bg-slate-900/80 p-4 flex flex-col items-center">
+            <div className="text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">Untrained Baseline Performance (Random vs Heuristic)</div>
+            <img
+              src="/training_plots/reward_curve.png"
+              alt="Baseline Reward Curve"
+              className="w-full h-auto rounded object-contain bg-white"
+              style={{ maxHeight: "300px", maxWidth: "800px" }}
+            />
+          </div>
         </div>
-        <div className="border border-slate-700/50 rounded-lg bg-slate-900/80 p-3 flex flex-col items-center">
-          <div className="text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">SFT Initial Warm-Start</div>
-          <img
-            src="/training_plots/trl_reward_curve.png"
-            alt="SFT Reward Curve"
-            className="w-full h-auto rounded object-contain bg-white"
-            style={{ maxHeight: "200px" }}
-          />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="border border-slate-700/50 rounded-lg bg-slate-900/80 p-3 flex flex-col items-center">
+            <div className="text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">PPO Reward Curve</div>
+            <img
+              src="/training_plots/trl_ppo_reward_curve.png"
+              alt="PPO Reward Curve"
+              className="w-full h-auto rounded object-contain bg-white"
+              style={{ maxHeight: "200px" }}
+            />
+          </div>
+          <div className="border border-slate-700/50 rounded-lg bg-slate-900/80 p-3 flex flex-col items-center">
+            <div className="text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">SFT Initial Warm-Start</div>
+            <img
+              src="/training_plots/trl_reward_curve.png"
+              alt="SFT Reward Curve"
+              className="w-full h-auto rounded object-contain bg-white"
+              style={{ maxHeight: "200px" }}
+            />
+          </div>
+          <div className="border border-slate-700/50 rounded-lg bg-slate-900/80 p-3 flex flex-col items-center">
+            <div className="text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">SFT Loss Curve (Convergence)</div>
+            <img
+              src="/training_plots/trl_loss_curve.png"
+              alt="SFT Loss Curve"
+              className="w-full h-auto rounded object-contain bg-white"
+              style={{ maxHeight: "200px" }}
+            />
+          </div>
         </div>
-        <div className="border border-slate-700/50 rounded-lg bg-slate-900/80 p-3 flex flex-col items-center">
-          <div className="text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">SFT Loss Curve (Convergence)</div>
-          <img
-            src="/training_plots/trl_loss_curve.png"
-            alt="SFT Loss Curve"
-            className="w-full h-auto rounded object-contain bg-white"
-            style={{ maxHeight: "200px" }}
-          />
-        </div>
-      </div>
+      )}
     </div>
   );
 }
