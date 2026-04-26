@@ -11,7 +11,7 @@ pinned: false
 > **TL;DR FOR JUDGES:**
 > **1. Problem:** We target multi-step strategic planning and instruction following under resource constraints.
 > **2. Environment:** A 90-day multi-agent startup simulation (cash, morale, crises) where an AI CEO directs 13 distinct corporate actions, with dense reward verification.
-> **3. Results:** +39% improvement over baseline heuristic via TRL SFT, further optimized via GRPO reinforcement learning.
+> **3. Results:** Environment baseline and trained-policy runs show measurable reward improvement with reproducible scripts and saved plots.
 > **4. Why it matters:** It proves LLMs can manage dynamic, multi-dimensional resource challenges beyond simple grid worlds or static API calling.
 
 > **OpenEnv Hackathon 2026** -- Theme: Multi-Agent Interactions + Instruction Following + Self-Improving Agents
@@ -90,11 +90,11 @@ while violating the strategic mandate without incurring a direct penalty.
 
 ## Reward Improvement Evidence
 
-### Random vs Heuristic (20 episodes each)
+### Environment Baseline Reference (Random vs Heuristic, 20 episodes each)
 
 ![Reward Curve: Before vs After](training/reward_curve.png)
 
-*X-axis: Episode number | Y-axis: Total cumulative episode reward. Random agent avg: ~4,200 | Heuristic (trained-like) avg: ~5,900 -- **+39% improvement***
+*X-axis: Episode number | Y-axis: Total cumulative episode reward. This plot is an environment baseline reference (random policy vs heuristic policy), not a model-training result.*
 
 ### TRL SFT: Training Evidence (before-vs-after)
 
@@ -115,6 +115,14 @@ Run `python training/trl_ppo_rl.py` (16 episodes, curriculum: growth->startup->c
 *X-axis: Episode | Y-axis: Total cumulative reward. Blue = per-episode, Orange = rolling avg, Gray = baseline.*
 
 > **8 Independent Reward Signals (Anti-Hacking):** Revenue, Morale, CSAT, Trust, Burn(-), Crisis(-), Invalid(-8), **Mandate Compliance(+/-1.0)**. Mandate bonus stops single-metric reward hacking.
+
+## 🕵️‍♂️ Proof of Training & Model Weights
+
+To provide verifiable proof that the LLM weights were updated via RL, we have provided two key artifacts:
+
+1. **[Training Behavioral Logs](TRAINING_LOGS.md)**: A side-by-side readable log comparing the AI's exact thoughts and actions in Episode 1 (Untrained, Bankrupt on Day 15) vs Episode 16 (Trained, Survived 90 Days).
+2. **Trained Model Weights**: The final fine-tuned LoRA weights (`adapter_model.safetensors`) from our Unsloth/TRL pipeline are hosted on Hugging Face Hub. 
+   - 🔗 **Weights Link:** [nelluru/atlas-ceo-distilgpt2](https://huggingface.co/nelluru/atlas-ceo-distilgpt2) *(Available for inference and evaluation)*.
 
 ---
 
@@ -142,9 +150,9 @@ ATLAS is designed for recursive capability growth:
 
 ---
 
-## Strict Hackathon Guidelines Compliance
+## Hackathon Guidelines Alignment
 
-This project was built to **100% satisfy** the advanced RL guidelines outlined in the Meta OpenEnv Hackathon Participant Help Guide:
+This project is designed to align closely with the advanced RL guidelines outlined in the Meta OpenEnv Hackathon Participant Help Guide:
 
 1. **Model Acts Step-by-Step:** The simulation runs across 90 days (270 distinct phases), requiring the CEO agent to make sequential, context-aware decisions at every single step.
 2. **Success Checked by Code (Verifiable):** The `AtlasStartupEnv` computes rewards using a strict mathematical formula based on objective metrics (Revenue, Cash, Morale, Trust) rather than human opinion.
