@@ -34,7 +34,7 @@ export const useStore = create(
         state: newState,
         episodeId: newEpisodeId,
         currentDay: 1,
-        currentPhase: 'Morning',
+        currentPhase: 'morning',
         events: [],
         decisions: [],
         rewards: [],
@@ -42,7 +42,7 @@ export const useStore = create(
         moraleHistory: [{ name: 'S1', mood: newState.employee_morale }],
         done: false,
       }),
-      
+
       resetForReplay: () => set({
         events: [],
         decisions: [],

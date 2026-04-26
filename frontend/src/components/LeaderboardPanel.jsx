@@ -38,6 +38,7 @@ export default function LeaderboardPanel({ rows, onReplay, onPdf }) {
                         className="rounded-lg border border-violet-400/30 bg-violet-500/10 px-2 py-1 text-xs text-violet-200"
                         href={onPdf(row.id)}
                         target="_blank"
+                        rel="noopener noreferrer"
                       >
                         PDF
                       </a>

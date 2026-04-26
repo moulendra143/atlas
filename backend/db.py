@@ -21,7 +21,7 @@ class EpisodeLog(Base):
     steps = Column(Integer, default=0)
     final_cash = Column(Float, default=0.0)
     final_revenue = Column(Float, default=0.0)
-    summary = Column(JSON, default={})
+    summary = Column(JSON, default=dict)
 
 
 class StepLog(Base):

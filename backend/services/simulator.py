@@ -62,7 +62,8 @@ class SimulationService:
         self.obs = obs
         self.done = terminated or truncated
         self.total_reward += reward
-        action_name = ACTIONS[action_idx]
+        # Always trust env-level action_name so invalid indices cannot crash logging.
+        action_name = str(info.get("action_name", "invalid_action"))
 
         # Use state_snapshot() — avoids exposing mutable internal dict to agent layer.
         current_state = self.env.state_snapshot()

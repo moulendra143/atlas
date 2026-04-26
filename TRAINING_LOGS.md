@@ -52,3 +52,13 @@ If you inspect the `training/` scripts, you will find:
 2. **Burn Rate Optimization:** The trained model learned to space out hiring and marketing decisions, maintaining a burn rate below the critical threshold to survive the 90-day simulation.
 
 **Conclusion:** The transition from Day 15 bankruptcy to Day 90 survival proves the RL pipeline successfully updated the LLM's weights to optimize for the OpenEnv multi-objective reward function.
+
+### 🔄 Auto-Log: Episode 1 (Stage: easy)
+* **Total Reward:** 46.80
+* **Steps Survived:** 10/60
+---
+
+### 🔄 Auto-Log: Episode 2 (Stage: easy)
+* **Total Reward:** 58.51
+* **Steps Survived:** 10/60
+---

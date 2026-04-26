@@ -1,6 +1,6 @@
 from typing import Any, Dict, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ResetRequest(BaseModel):
@@ -10,7 +10,7 @@ class ResetRequest(BaseModel):
 
 
 class StepRequest(BaseModel):
-    action_idx: Optional[int] = None
+    action_idx: int = Field(..., ge=0, description="Discrete action index (0-12).")
 
 
 class ReplayStepOut(BaseModel):
