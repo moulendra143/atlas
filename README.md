@@ -18,7 +18,7 @@ pinned: false
 
 ATLAS is a real-time startup simulation where an **AI CEO** coordinates multiple autonomous department agents over a **90-day quarter**. The environment is fully OpenEnv-compliant, Gym-compatible, and designed for a two-stage learning pipeline:
 - **TRL SFT** warm-start from environment-generated trajectories (with optional **Unsloth** acceleration)
-- **TRL GRPO / PPO** optimization using real environment rewards (action -> verifiable reward -> policy improvement)
+- **TRL GRPO** optimization using real environment rewards (action → verifiable reward → policy improvement)
 
 ? **Live Space:** https://huggingface.co/spaces/nelluru/ATLAS  
 ? **Live App:** https://nelluru-atlas.hf.space  
@@ -106,12 +106,12 @@ while violating the strategic mandate without incurring a direct penalty.
 ![TRL Loss Curve](training/trl_loss_curve.png)
 *X-axis: Training step | Y-axis: SFT cross-entropy loss. Loss converges steadily over 30 steps, confirming the model learned to imitate environment-optimal actions.*
 
-### TRL GRPO / PPO RL: Verifiable Reward-Driven Improvement
-The GRPO/PPO RL loop connects the trained LLM directly to the **live environment** (not a static dataset).
+### TRL GRPO RL: Verifiable Reward-Driven Improvement
+The GRPO RL loop connects the trained LLM directly to the **live environment** (not a static dataset). The `verify_business_health` reward function restores the exact env state and steps it with the agent's chosen action, making it a true environment-connected verifier.
 
-Run `python training/trl_ppo_rl.py` (16 episodes, curriculum: growth->startup->crisis):
+Run `python training/trl_grpo_rl.py` (16 episodes, curriculum: growth→startup→crisis):
 
-![PPO Reward Curve](training/trl_ppo_reward_curve.png)
+![GRPO Reward Curve](training/trl_ppo_reward_curve.png)
 *X-axis: Episode | Y-axis: Total cumulative reward. Blue = per-episode, Orange = rolling avg, Gray = baseline.*
 
 > **8 Independent Reward Signals (Anti-Hacking):** Revenue, Morale, CSAT, Trust, Burn(-), Crisis(-), Invalid(-8), **Mandate Compliance(+/-1.0)**. Mandate bonus stops single-metric reward hacking.

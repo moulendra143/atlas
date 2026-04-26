@@ -1,6 +1,6 @@
 # 🧠 ATLAS: Training Logs & Behavior Proof
 
-This document provides readable, step-by-step evidence of the model's behavior **before** and **after** Reinforcement Learning (TRL PPO). Mentors and judges can use this log to verify that the LLM learned meaningful strategic behaviors rather than just generating random outputs.
+This document provides readable, step-by-step evidence of the model's behavior **before** and **after** Reinforcement Learning (TRL GRPO). Mentors and judges can use this log to verify that the LLM learned meaningful strategic behaviors rather than just generating random outputs.
 
 ---
 
@@ -24,8 +24,8 @@ This document provides readable, step-by-step evidence of the model's behavior *
 
 ---
 
-## ✅ Episode 16: Trained Policy (After PPO / GRPO Optimization)
-**Context:** The agent has completed Supervised Fine-Tuning (SFT) and 15 episodes of PPO. The Board Mandate is **"Aggressive Growth"**.
+## ✅ Episode 16: Trained Policy (After SFT + GRPO Optimization)
+**Context:** The agent has completed Supervised Fine-Tuning (SFT) and 15 episodes of GRPO. The Board Mandate is **"Aggressive Growth"**.
 
 ### Behavior Log:
 - **Day 1:** AI chooses `raise_funding`. (Secures runway for growth mandate).

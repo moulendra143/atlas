@@ -92,10 +92,10 @@ export default function TrainingEvidence() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="border border-slate-700/50 rounded-lg bg-slate-900/80 p-3 flex flex-col items-center">
-            <div className="text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">PPO Reward Curve</div>
+            <div className="text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">GRPO Reward Curve</div>
             <img
               src="/training_plots/trl_ppo_reward_curve.png"
-              alt="PPO Reward Curve"
+              alt="GRPO Reward Curve"
               className="w-full h-auto rounded object-contain bg-white"
               style={{ maxHeight: "200px" }}
             />
