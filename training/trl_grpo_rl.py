@@ -221,14 +221,14 @@ def _save_reward_curve(rewards: list, output_dir: str) -> None:
     fig.tight_layout()
 
     os.makedirs("training", exist_ok=True)
-    canonical = os.path.join("training", "trl_ppo_reward_curve.png")  # kept for UI compat
+    canonical = os.path.join("training", "trl_grpo_reward_curve.png")
     out_path = os.path.join(output_dir, "trl_grpo_reward_curve.png")
     fig.savefig(canonical, dpi=120)
     fig.savefig(out_path, dpi=120)
 
     # Also update frontend plot
     frontend_path = os.path.join(
-        PROJECT_ROOT, "frontend", "public", "training_plots", "trl_ppo_reward_curve.png"
+        PROJECT_ROOT, "frontend", "public", "training_plots", "trl_grpo_reward_curve.png"
     )
     try:
         os.makedirs(os.path.dirname(frontend_path), exist_ok=True)

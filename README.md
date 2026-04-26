@@ -111,7 +111,7 @@ The GRPO RL loop connects the trained LLM directly to the **live environment** (
 
 Run `python training/trl_grpo_rl.py` (16 episodes, curriculum: growth→startup→crisis):
 
-![GRPO Reward Curve](training/trl_ppo_reward_curve.png)
+![GRPO Reward Curve](training/trl_grpo_reward_curve.png)
 *X-axis: Episode | Y-axis: Total cumulative reward. Blue = per-episode, Orange = rolling avg, Gray = baseline.*
 
 > **8 Independent Reward Signals (Anti-Hacking):** Revenue, Morale, CSAT, Trust, Burn(-), Crisis(-), Invalid(-8), **Mandate Compliance(+/-1.0)**. Mandate bonus stops single-metric reward hacking.
@@ -163,9 +163,9 @@ ATLAS is designed for recursive capability growth:
 | OpenEnv (latest release) `0.2.3` | ? | `requirements.txt`, `openenv.yaml` |
 | OpenEnv manifest | ? | `openenv.yaml` (repo root) |
 | TRL SFT training script in Colab | ? | `training/TRL_Colab_Minimal.ipynb`, `training/trl_colab_minimal.py` |
-| TRL RL trainer (GRPO/PPO) | ? | `training/trl_grpo_rl.py`, `training/trl_ppo_rl.py` |
-| Unsloth acceleration integrated | ? | `training/trl_colab_minimal.py`, `requirements.txt` |
-| Training Evidence (plots) | ? | `reward_curve.png`, `trl_reward_curve.png`, `trl_loss_curve.png`, `trl_ppo_reward_curve.png` |
+| TRL RL trainer (GRPO) | ✅ | `training/trl_grpo_rl.py` |
+| Unsloth acceleration integrated | ✅ | `training/trl_colab_minimal.py`, `requirements.txt` |
+| Training Evidence (plots) | ✅ | `reward_curve.png`, `trl_reward_curve.png`, `trl_loss_curve.png`, `trl_grpo_reward_curve.png` |
 | Mini-video < 2 min | ? | https://youtu.be/1aWDCkJ3Uyc |
 | Hosted on Hugging Face Spaces | ? | https://huggingface.co/spaces/nelluru/ATLAS |
 | README with all links + Strategy | ? | This file |
@@ -179,7 +179,7 @@ This project is designed to align closely with the advanced RL guidelines outlin
 1. **Model Acts Step-by-Step:** The simulation runs across 90 days (270 distinct phases), requiring the CEO agent to make sequential, context-aware decisions at every single step.
 2. **Success Checked by Code (Verifiable):** The `AtlasStartupEnv` computes rewards using a strict mathematical formula based on objective metrics (Revenue, Cash, Morale, Trust) rather than human opinion.
 3. **Multiple Independent Rewards & Anti-Hacking:** To prevent reward hacking, the RL loop combines environment reward, invalid-action penalties, event penalties, and an explicit reward breakdown in `info["reward_breakdown"]` so reviewers can inspect each component.
-4. **Curriculum + RL Loop:** We bootstrap with SFT (Heuristic Distillation) as recommended, then use curriculum-guided RL in `training/trl_ppo_rl.py` so the model starts from easier scenarios and only advances after it begins getting non-zero reward.
+4. **Curriculum + RL Loop:** We bootstrap with SFT (Heuristic Distillation) as recommended, then use curriculum-guided RL in `training/trl_grpo_rl.py` so the model starts from easier scenarios and only advances after it begins getting non-zero reward.
 
 ---
 
@@ -221,7 +221,7 @@ Open [`training/TRL_Colab_Minimal.ipynb`](training/TRL_Colab_Minimal.ipynb) in G
 %cd atlas
 !pip -q install openenv-core==0.2.3 gymnasium numpy matplotlib trl transformers datasets torch unsloth
 !python training/trl_colab_minimal.py
-!python training/trl_ppo_rl.py
+!python training/trl_grpo_rl.py
 ```
 
 Stage 1 (`trl_colab_minimal.py`):
@@ -230,10 +230,10 @@ Stage 1 (`trl_colab_minimal.py`):
 3. Evaluates reward **before vs after** training
 4. Saves `training/trl_reward_curve.png` and `training/trl_loss_curve.png`
 
-Stage 2 (`trl_grpo_rl.py` / `trl_ppo_rl.py`):
+Stage 2 (`trl_grpo_rl.py`):
 1. Runs model-in-the-loop verification episodes in the environment
 2. Uses step rewards/penalties as a training signal
-3. Updates policy via TRL `GRPOTrainer` or `PPOTrainer`
+3. Updates policy via TRL `GRPOTrainer`
 4. Saves RL-updated policy to `training/trl_grpo_out`
 5. Uses `sshleifer/tiny-gpt2` by default for low-resource smoke runs (override with `ATLAS_RL_MODEL`)
 
@@ -316,8 +316,8 @@ The dashboard will now show the AI making decisions in real-time!
 - **Backend:** Python 3.11, FastAPI, WebSocket, SQLite/SQLAlchemy
 - **Frontend:** React, Zustand (Global State + Persistence), Tailwind, Recharts dashboard
 - **Environment:** Gymnasium-compatible, OpenEnv adapter
-- **AI Features:** Explainable AI (Decision Reasons), TRL `SFTTrainer`/`PPOTrainer`, Unsloth
-- **Training:** Hugging Face TRL (`SFTTrainer`, `PPOTrainer`), optional Unsloth acceleration, `distilgpt2`
+- **AI Features:** Explainable AI (Decision Reasons), TRL `SFTTrainer`/`GRPOTrainer`, Unsloth
+- **Training:** Hugging Face TRL (`SFTTrainer`, `GRPOTrainer`), optional Unsloth acceleration, `distilgpt2`
 - **Hosting:** Docker, Hugging Face Spaces
 
 ---
@@ -335,7 +335,6 @@ atlas/
 ?   ??? train.py           # Random vs heuristic reward curve
 ?   ??? trl_colab_minimal.py  # TRL SFT before/after script
 ?   ??? trl_grpo_rl.py     # TRL GRPO verifiable reinforcement-learning loop
-?   ??? trl_ppo_rl.py      # TRL PPO reinforcement-learning loop
 ?   ??? TRL_Colab_Minimal.ipynb
 ?   ??? check_openenv.py   # OpenEnv adapter smoke-test
 ?   ??? reward_curve.png   # Plot: random vs heuristic
@@ -381,7 +380,7 @@ atlas/
 3. Highlight reward chart climbing as smart decisions are made
 4. Show leaderboard and replay a previous quarter
 5. Run `python training/train.py` -> show `reward_curve.png` improvement
-6. Run `python training/trl_ppo_rl.py` to show reward-driven RL policy improvement
+6. Run `python training/trl_grpo_rl.py` to show reward-driven GRPO policy improvement
  
 ## Real-Time Control API
 
@@ -415,7 +414,7 @@ This project is licensed under the Apache License 2.0. See the `LICENSE` file fo
 ## Acknowledgements
 
 - **OpenEnv** - for providing a standardized RL environment interface.
-- **TRL** - for simplifying SFT and PPO training pipelines.
+- **TRL** - for simplifying SFT and GRPO training pipelines.
 - **Unsloth** - for fast, low?memory finetuning.
 - The hackathon judges and community for valuable feedback.
 
