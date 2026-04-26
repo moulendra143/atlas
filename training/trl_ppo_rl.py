@@ -252,6 +252,17 @@ def _run_reinforce_curriculum(cfg: RunConfig) -> None:
             f"Episode {ep + 1:02d}/{cfg.episodes} | stage={stage['name']} "
             f"steps={steps} | total_reward={total_reward:.2f}"
         )
+
+        # Auto-append episode summary to TRAINING_LOGS.md
+        log_file_path = os.path.join(PROJECT_ROOT, "TRAINING_LOGS.md")
+        try:
+            with open(log_file_path, "a", encoding="utf-8") as f:
+                f.write(f"\n### 🔄 Auto-Log: Episode {ep + 1} (Stage: {stage['name']})\n")
+                f.write(f"* **Total Reward:** {total_reward:.2f}\n")
+                f.write(f"* **Steps Survived:** {steps}/{stage['max_steps']}\n")
+                f.write("---\n")
+        except Exception as e:
+            pass
         # Guide §15: Inspect actual generations periodically — not just reward scalars.
         if (ep + 1) % 5 == 0 or ep == 0:
             mandate = getattr(env, "mandate", "Balanced Stability")
@@ -474,6 +485,15 @@ def _save_ppo_reward_curve(episode_rewards: List[float], output_dir: str) -> Non
     out_path = os.path.join(output_dir, "trl_ppo_reward_curve.png")
     fig.savefig(canonical_path, dpi=120)
     fig.savefig(out_path, dpi=120)
+
+    # Also save to frontend so the UI updates automatically
+    frontend_path = os.path.join(PROJECT_ROOT, "frontend", "public", "training_plots", "trl_ppo_reward_curve.png")
+    try:
+        os.makedirs(os.path.dirname(frontend_path), exist_ok=True)
+        fig.savefig(frontend_path, dpi=120)
+    except Exception as e:
+        print(f"Failed to copy plot to frontend: {e}")
+
     plt.close(fig)
     print(f"Saved PPO reward curve to: {canonical_path}")
 
