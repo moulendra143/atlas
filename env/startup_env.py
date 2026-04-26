@@ -374,9 +374,11 @@ class AtlasOpenEnv(OpenEnvBase):
         """
         return self.get_state()
 
-    def state_snapshot(self) -> Dict[str, float]:
-        """Public read-only view — delegates to core env."""
-        return self.core.state_snapshot()
+    def state_snapshot(self):
+        """Public read-only view — delegates to core env and adds mandate."""
+        s = self.core.state_snapshot()
+        s["mandate"] = getattr(self, "mandate", "None")
+        return s
 
     def render(self):
         return self.core.render()
