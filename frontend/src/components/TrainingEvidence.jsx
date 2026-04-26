@@ -7,12 +7,8 @@ export default function TrainingEvidence() {
     <div className="glass-card p-6 border border-slate-800 bg-slate-900/50 rounded-xl mb-6">
       <div className="mb-6">
         <h2 className="text-xl font-bold text-white mb-1">
-          RL Training Evidence & Learning Outcome (TRL / Unsloth)
+          RL Training Evidence & Learning Outcome
         </h2>
-        <div className="text-sm text-slate-400">
-          <span className="font-semibold text-slate-300">Model:</span> sshleifer/tiny-gpt2 |{" "}
-          <span className="font-semibold text-slate-300">Framework:</span> HuggingFace TRL (SFT + GRPO/PPO) & Unsloth
-        </div>
       </div>
 
       <div className="flex gap-2 mb-6">
