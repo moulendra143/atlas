@@ -43,7 +43,16 @@ export default function App() {
 
   const [activeNav, setActiveNav] = useState("Dashboard");
   const [wsStatus, setWsStatus] = useState("Connecting...");
+  const [mandate, setMandate] = useState("");
+  const [selectedMandate, setSelectedMandate] = useState("");
   const isReplayModeRef = useRef(false);
+
+  const MANDATE_OPTIONS = [
+    { label: "Random (env picks)",         value: "" },
+    { label: "Maximize Growth",             value: "Maximize Growth: Prioritize product progress and revenue even if burn rate increases." },
+    { label: "Cost Efficiency",             value: "Cost Efficiency: Minimize burn rate and preserve cash balance at all costs." },
+    { label: "Balanced Stability",          value: "Balanced Stability: Maintain a healthy balance between employee morale and revenue." },
+  ];
 
   useEffect(() => {
     boot();
@@ -55,6 +64,8 @@ export default function App() {
         setCurrentPhase(payload.phase);
         setState(payload.state);
         setEpisodeId(payload.episode_id ?? null);
+        // Update live mandate from backend state
+        if (payload.state?.mandate) setMandate(payload.state.mandate);
         setDecisions((d) =>
           [{ day: payload.day, phase: payload.phase, action: payload.action, reason: getReason(payload.action, payload.state, payload.phase) }, ...d].slice(0, 30),
         );
@@ -108,8 +119,10 @@ export default function App() {
 
   async function onReset() {
     isReplayModeRef.current = false;
-    const resetRes = await api.reset(mode);
+    const resetRes = await api.reset(mode, selectedMandate || null);
     resetSimulation(resetRes.data.state, resetRes.data.episode_id);
+    // Update mandate badge from fresh reset
+    if (resetRes.data.state?.mandate) setMandate(resetRes.data.state.mandate);
     await loadLeaderboard();
   }
 
@@ -238,10 +251,17 @@ export default function App() {
         <main className="main-panel">
           <header id="section-dashboard" className="glass-card">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="rounded-xl border border-violet-400/30 bg-violet-500/10 px-4 py-2 text-sm text-violet-100">
-                {isReplayModeRef.current ? "[REPLAY] " : ""}Day {currentDay} &middot; {currentPhase} Phase
-              </div>
               <div className="flex flex-wrap items-center gap-2">
+                <div className="rounded-xl border border-violet-400/30 bg-violet-500/10 px-4 py-2 text-sm text-violet-100">
+                  {isReplayModeRef.current ? "[REPLAY] " : ""}Day {currentDay} &middot; {currentPhase} Phase
+                </div>
+                {mandate && (
+                  <div className="rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-2 text-sm font-medium text-amber-200"
+                       title={mandate}>
+                    📋 Mandate: {mandate.split(":")[0]}
+                  </div>
+                )}
+              </div>
                 <div className="flex items-center gap-1 rounded bg-slate-800/50 p-1">
                   <button className="rounded px-2 py-1 text-xs text-slate-300 hover:bg-slate-700 hover:text-white" onClick={() => api.pause()}>⏸ Pause</button>
                   <button className="rounded px-2 py-1 text-xs text-slate-300 hover:bg-slate-700 hover:text-white" onClick={() => api.resume()}>▶ Resume</button>
@@ -308,8 +328,57 @@ export default function App() {
           </section>
 
           <section id="section-settings" className="glass-card">
-            <div className="panel-title mb-1">Settings</div>
-            <p className="text-sm text-slate-400">Use the controls in the top bar to change mode, reset, export CSV, and generate report.</p>
+            <div className="panel-title mb-4">Settings</div>
+
+            <div className="space-y-6">
+              {/* Board Mandate Selector */}
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-amber-300">📋 Board Mandate</label>
+                <p className="mb-3 text-xs text-slate-400">
+                  Select the strategic directive the AI CEO must follow. Takes effect on next Reset.
+                </p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {MANDATE_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setSelectedMandate(opt.value)}
+                      className={`rounded-xl border px-4 py-3 text-left text-sm transition ${
+                        selectedMandate === opt.value
+                          ? "border-amber-400/70 bg-amber-500/20 text-amber-100"
+                          : "border-slate-600/40 bg-slate-800/30 text-slate-300 hover:border-amber-400/40 hover:bg-amber-500/10"
+                      }`}
+                    >
+                      <div className="font-medium">{opt.label}</div>
+                      {opt.value && (
+                        <div className="mt-1 text-xs text-slate-400">{opt.value.split(":")[1]?.trim()}</div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={onReset}
+                  className="mt-4 rounded-xl border border-amber-400/60 bg-amber-500/20 px-6 py-2 text-sm font-semibold text-amber-200 transition hover:bg-amber-500/30"
+                >
+                  Apply Mandate &amp; Reset Simulation
+                </button>
+              </div>
+
+              {/* Current Active Mandate */}
+              {mandate && (
+                <div className="rounded-xl border border-amber-400/20 bg-amber-500/5 p-4">
+                  <div className="text-xs font-semibold text-amber-400">Active Board Mandate</div>
+                  <div className="mt-1 text-sm text-amber-100">{mandate}</div>
+                </div>
+              )}
+
+              {/* Other controls */}
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-300">Other Controls</label>
+                <p className="text-sm text-slate-400">Use the controls in the top bar to change mode, reset, export CSV, and generate report.</p>
+              </div>
+            </div>
           </section>
         </main>
       </div>
