@@ -744,7 +744,6 @@ We hope this project inspires innovative AI-driven management simulations. Feel 
 - [Live Space](https://huggingface.co/spaces/nelluru/ATLAS)
 - [Demo Video](https://youtu.be/hDVsQo99-JU)
 - [GitHub Repo](https://github.com/Jaswanth-arjun/atlas)
--[Presentation](https://docs.google.com/presentation/d/1ijZkJZTXke_qHiKfI9zOVI9Z6Wdx9p04/edit?usp=sharing&ouid=114255110168767644589&rtpof=true&sd=true)
 </details>
 
 ---
